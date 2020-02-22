@@ -6,7 +6,25 @@
 
 #IncludeRegexTransform: 
 
-C:/Users/Bryan/Documents/Digipen/Personal/Projects/DnDMonteCarloArena/main.cpp
+C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/Arena.cpp
+Arena.h
+C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/Arena.h
+
+C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/Arena.h
+Group.h
+C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/Group.h
+
+C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/Group.cpp
+Group.h
+C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/Group.h
+
+C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/Group.h
+vector
+-
+
+C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/main.cpp
 iostream
 -
+Arena.h
+C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/Arena.h
 

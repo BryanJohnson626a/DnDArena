@@ -4,11 +4,15 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/Arena.cpp" "C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/cmake-build-debug/CMakeFiles/DnDMonteCarloArena.dir/Source/Arena.cpp.obj"
-  "C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/Group.cpp" "C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/cmake-build-debug/CMakeFiles/DnDMonteCarloArena.dir/Source/Group.cpp.obj"
-  "C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/Source/main.cpp" "C:/Users/Bryan/Documents/Digipen/Personal/Projects/dndmontecarloarena/cmake-build-debug/CMakeFiles/DnDMonteCarloArena.dir/Source/main.cpp.obj"
+  "/home/bryan/Documents/Projects/dndmontecarloarena/Source/Action.cpp" "/home/bryan/Documents/Projects/dndmontecarloarena/cmake-build-debug/CMakeFiles/DnDMonteCarloArena.dir/Source/Action.cpp.o"
+  "/home/bryan/Documents/Projects/dndmontecarloarena/Source/Actor.cpp" "/home/bryan/Documents/Projects/dndmontecarloarena/cmake-build-debug/CMakeFiles/DnDMonteCarloArena.dir/Source/Actor.cpp.o"
+  "/home/bryan/Documents/Projects/dndmontecarloarena/Source/Arena.cpp" "/home/bryan/Documents/Projects/dndmontecarloarena/cmake-build-debug/CMakeFiles/DnDMonteCarloArena.dir/Source/Arena.cpp.o"
+  "/home/bryan/Documents/Projects/dndmontecarloarena/Source/Dice.cpp" "/home/bryan/Documents/Projects/dndmontecarloarena/cmake-build-debug/CMakeFiles/DnDMonteCarloArena.dir/Source/Dice.cpp.o"
+  "/home/bryan/Documents/Projects/dndmontecarloarena/Source/Group.cpp" "/home/bryan/Documents/Projects/dndmontecarloarena/cmake-build-debug/CMakeFiles/DnDMonteCarloArena.dir/Source/Group.cpp.o"
+  "/home/bryan/Documents/Projects/dndmontecarloarena/Source/Output.cpp" "/home/bryan/Documents/Projects/dndmontecarloarena/cmake-build-debug/CMakeFiles/DnDMonteCarloArena.dir/Source/Output.cpp.o"
+  "/home/bryan/Documents/Projects/dndmontecarloarena/main.cpp" "/home/bryan/Documents/Projects/dndmontecarloarena/cmake-build-debug/CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o"
   )
-set(CMAKE_CXX_COMPILER_ID "MSVC")
+set(CMAKE_CXX_COMPILER_ID "Clang")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH

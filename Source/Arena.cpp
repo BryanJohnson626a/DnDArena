@@ -2,27 +2,32 @@
 // Created by Bryan on 2/21/2020.
 //
 
+#include <algorithm>
+
 #include "Arena.h"
+#include "Actor.h"
+#include "Action.h"
+#include "Dice.h"
+#include "Output.h"
 
-struct ActorInstance
+int Arena::DoBattle()
 {
-    Actor * Data;
-    int HP;
-    int Team;
-    bool ShieldUp;
-};
+    RollInitiative();
 
-/**
- * Do the processing for a single battle.
- */
-void Arena::DoRound()
-{
+    std::cout << *this << std::endl;
 
+
+    out << InitiativeQueue << std::endl;
+
+    while (GroupsAlive() > 1)
+    {
+        DoRound();
+        out << std::endl << *this << std::endl << std::endl;
+    }
+
+    return 0;
 }
 
-/**
- *  Reset saved statistics for arena and all combatants.
- */
 void Arena::ResetStats()
 {
     Rounds = 0;
@@ -30,32 +35,67 @@ void Arena::ResetStats()
         group.ClearStats();
 }
 
-/**
- * Adds a combatant to a team.
- * @param actor
- * @param team The team to place the actor on.
- * @return The index of the new combatant in it's team, or -1 if the team doesn't exist.
- */
-int Arena::AddCombatant(Actor * actor, int team)
+int Arena::AddCombatant(std::string Name, const StatBlock & Stats, int team)
 {
     if (Combatants.size() <= team)
         return -1;
-    else
-        return Combatants[team].AddMember(actor);
-}
+    int index = Combatants[team].Members.size();
 
-/**
- * Adds a new team to the arena.
- * @return The index of the new team.
- */
-int Arena::AddTeam()
-{
-    int index = Combatants.size();
-    Combatants.emplace_back(Group());
+    Combatants[team].AddActor(Name, Stats);
+    InitiativeQueue.emplace_back(&Combatants[team].Members[index]);
+
     return index;
 }
 
-int Arena::getRounds() const
+int Arena::AddTeam(std::string name)
 {
-    return Rounds;
+    int team = Combatants.size() - 1;
+    Combatants.emplace_back(Group(name, team, out));
+    return team;
+}
+
+bool CompareInitiative(const Actor * A, const Actor * B)
+{
+    return A->Initiative > B->Initiative;
+}
+
+void Arena::RollInitiative()
+{
+    for (Actor * actor : InitiativeQueue)
+        actor->Initialize();
+
+    std::sort(InitiativeQueue.begin(), InitiativeQueue.end(), CompareInitiative);
+}
+
+int Arena::GroupsAlive() const
+{
+    int alive = 0;
+    for (auto group : Combatants)
+        if (group.MembersAlive() > 0)
+            ++alive;
+
+    return alive;
+}
+
+void Arena::DoRound()
+{
+    for (auto actor : InitiativeQueue)
+        actor->TakeAction(*this);
+}
+
+Group & Arena::OtherGroup(int team)
+{
+    for (auto & group : Combatants)
+        if (group.Team != team)
+            return group;
+
+    return Combatants[0];
+}
+
+Arena::Arena(std::ostream & out) : out(out), Rounds(0)
+{}
+
+const Groups & Arena::GetCombatants() const
+{
+    return Combatants;
 }

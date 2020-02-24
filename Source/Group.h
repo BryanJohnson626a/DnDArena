@@ -2,45 +2,35 @@
 // Created by Bryan on 2/21/2020.
 //
 
-#include <vector>
+#pragma once
 
+#include <vector>
+#include <string>
+
+#include "Types.h"
+
+class StatBlock;
 class Actor;
+
+using Actors = std::vector<Actor>;
 
 class Group
 {
 public:
-    // Stores battle information about an actor.
-    struct ActorInfo
-    {
-        Actor * Actor;
 
-        int Kills;
-        int Deaths;
+    Group(std::string name, int team, std::ostream & out);
 
-        int DamageDone;
-        int DamageTaken;
-
-        int AttacksMade;
-        int AttacksMissed;
-
-        int AttacksRecieved;
-        int AttacksAvoided;
-
-        int ForcedSaves;
-        int ForcedSavesMade;
-
-        int SavesDone;
-        int SavesMade;
-    };
-
-    Group();
     void ClearStats();
-    int getWins() const;
-    void setWins(int wins);
-    int AddMember(Actor * actor);
-private:
+    int AddActor(std::string name, const StatBlock & actor);
+    Actor & FirstAlive();
+
+    std::string Name;
     int Wins;
-    std::vector<ActorInfo> Members;
-    void ClearActorInfo(Group::ActorInfo & actor);
+    int Team;
+    Actors Members;
+
+    int MembersAlive() const;
+
+    std::ostream & out;
 };
 

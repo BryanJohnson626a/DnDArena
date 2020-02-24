@@ -12,20 +12,6 @@ string
 Types.h
 /home/bryan/Documents/Projects/dndmontecarloarena/Source/Types.h
 
-/home/bryan/Documents/Projects/dndmontecarloarena/Source/Actor.cpp
-cstring
--
-Arena.h
-/home/bryan/Documents/Projects/dndmontecarloarena/Source/Arena.h
-Actor.h
-/home/bryan/Documents/Projects/dndmontecarloarena/Source/Actor.h
-Action.h
-/home/bryan/Documents/Projects/dndmontecarloarena/Source/Action.h
-Dice.h
-/home/bryan/Documents/Projects/dndmontecarloarena/Source/Dice.h
-Output.h
-/home/bryan/Documents/Projects/dndmontecarloarena/Source/Output.h
-
 /home/bryan/Documents/Projects/dndmontecarloarena/Source/Actor.h
 vector
 -
@@ -35,17 +21,13 @@ Types.h
 /home/bryan/Documents/Projects/dndmontecarloarena/Source/Types.h
 
 /home/bryan/Documents/Projects/dndmontecarloarena/Source/Arena.h
-iostream
+ostream
 -
 Types.h
 /home/bryan/Documents/Projects/dndmontecarloarena/Source/Types.h
 Group.h
 /home/bryan/Documents/Projects/dndmontecarloarena/Source/Group.h
 
-/home/bryan/Documents/Projects/dndmontecarloarena/Source/Dice.h
-random
--
-
 /home/bryan/Documents/Projects/dndmontecarloarena/Source/Group.h
 vector
 -
@@ -53,6 +35,18 @@ string
 -
 Types.h
 /home/bryan/Documents/Projects/dndmontecarloarena/Source/Types.h
+
+/home/bryan/Documents/Projects/dndmontecarloarena/Source/Output.cpp
+Output.h
+/home/bryan/Documents/Projects/dndmontecarloarena/Source/Output.h
+Actor.h
+/home/bryan/Documents/Projects/dndmontecarloarena/Source/Actor.h
+Action.h
+/home/bryan/Documents/Projects/dndmontecarloarena/Source/Action.h
+Arena.h
+/home/bryan/Documents/Projects/dndmontecarloarena/Source/Arena.h
+Group.h
+/home/bryan/Documents/Projects/dndmontecarloarena/Source/Group.h
 
 /home/bryan/Documents/Projects/dndmontecarloarena/Source/Output.h
 ostream

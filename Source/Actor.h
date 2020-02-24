@@ -10,8 +10,13 @@
 #include "Types.h"
 
 class Action;
-
 class Die;
+
+struct WeightedAction
+{
+    float Weight;
+    const Action & Action;
+};
 
 /**
  * Holds the base, unchanging stats of an actor.
@@ -19,12 +24,6 @@ class Die;
 struct StatBlock
 {
     void CalculateDerivedStats();
-
-    struct WeightedAction
-    {
-        float Weight;
-        const Action & Action;
-    };
 
     std::string Name;
     std::string Type;
@@ -57,7 +56,9 @@ struct StatBlock
             INTSaveMod, WISSaveMod, CHASaveMod;
 
     std::vector<WeightedAction> Actions;
+    float ActionsTotalWeight;
     std::vector<WeightedAction> BonusActions;
+    float BonusActionsTotalWeight;
 
     std::vector<std::string> Immunities;
     std::vector<std::string> Resistances;
@@ -79,36 +80,45 @@ public:
         int Deaths;
         int DamageDone;
         int DamageTaken;
-        int AttacksMade;
+        int AttacksLanded;
         int AttacksMissed;
         int AttacksReceived;
         int AttacksAvoided;
+        int CritsLanded;
+        int CritsReceived;
         int ForcedSaves;
         int ForcedSavesMade;
         int SavesDone;
         int SavesMade;
     };
 
-    Actor(std::string Name, const StatBlock & StatBlock, int Team, std::ostream & out);
+    Actor(std::string name, const StatBlock & stat_block, int team, std::ostream & out);
 
     void Initialize();
     void ResetInfo();
     const Statistics & Info();
+    [[nodiscard]] const Action & ChooseAction() const;
     void TakeAction(Arena & arena);
     void TakeDamage(int damage);
+    void DeathSave();
     const StatBlock & Stats;
 
     std::string Name;
     int Initiative;
     int Team;
 
+    DeathState GetDeathState() const;
     bool Alive() const;
+    bool Conscious() const;
     int CurrentHP() const;
-
-private:
-    int HP, MaxHP;
+    int SuccessfulDeathSaves, FailedDeathSaves;
 
     Statistics InfoStats;
+private:
+    int HP, MaxHP;
+    DeathState State;
 
     std::ostream & out;
+
+    void DeathCheck();
 };

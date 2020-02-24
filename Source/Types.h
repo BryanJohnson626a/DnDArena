@@ -24,6 +24,14 @@ enum ActionType
     Special
 };
 
+enum DeathState
+{
+    Conscious,
+    Stable,
+    Dying,
+    Dead
+};
+
 class Arena;
 class Group;
 class Actor;

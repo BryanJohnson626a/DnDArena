@@ -22,14 +22,17 @@ public:
 
     void ClearStats();
     int AddActor(std::string name, const StatBlock & actor);
+
+    int MembersAlive() const;
+    int MembersConscious() const;
+
     Actor & FirstAlive();
+    Actor & FirstConscious();
 
     std::string Name;
     int Wins;
     int Team;
     Actors Members;
-
-    int MembersAlive() const;
 
     std::ostream & out;
 };

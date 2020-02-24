@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include <iostream>
+#include <ostream>
 
 #include "Types.h"
 #include "Group.h"
@@ -12,7 +12,7 @@ class Arena
 {
 public:
 
-    Arena(std::ostream & out);
+    Arena(std::ostream & output_stream);
 /**
  * Adds a new team to the arena.
  * @return The index of the new team.
@@ -31,7 +31,7 @@ public:
 /**
  *  Reset saved statistics for arena and all combatants.
  */
-    void ResetStats();
+    void Initialize();
 
 /**
  * Do one full fight between all combatants.
@@ -41,7 +41,11 @@ public:
 
     Group & OtherGroup(int team);
     int GroupsAlive() const;
+    int GroupsConscious() const;
     const Groups & GetCombatants() const;
+    int NumBattles() const;
+
+    void DoBattles(int trials);
 
 private:
     void RollInitiative();
@@ -49,7 +53,9 @@ private:
 
     Groups Combatants;
     ActorQueue InitiativeQueue;
-    int Rounds{};
+    int Battles;
+
+private:
 
     std::ostream & out;
 };

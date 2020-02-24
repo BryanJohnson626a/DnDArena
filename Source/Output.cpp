@@ -31,7 +31,7 @@ std::ostream & operator<<(std::ostream & out, const Action & action)
 
 std::ostream & operator<<(std::ostream & out, const Arena & arena)
 {
-    out << "In the arena: " << arena.GetCombatants();
+    out << "Battle " << arena.NumBattles() << ": " << arena.GetCombatants();
     return out;
 }
 
@@ -44,9 +44,9 @@ std::ostream & operator<<(std::ostream & out, const Groups & groups)
             if (first)
                 first = false;
             else
-                std::cout << " vs ";
+                out << " vs ";
 
-            std::cout << group;
+            out << group;
         }
     return out;
 }
@@ -55,14 +55,28 @@ std::ostream & operator<<(std::ostream & out, const Group & group)
 {
     bool first = true;
     for (const auto & Member : group.Members)
-        if (Member.Alive())
-        {
-            if (first)
-                first = false;
-            else
-                std::cout << ", ";
+    {
+        if (first)
+            first = false;
+        else
+            out << ", ";
 
-            std::cout << Member << "(" << Member.CurrentHP() << ")";
+        switch (Member.GetDeathState())
+        {
+
+            case Conscious:
+                out << Member << "(" << Member.CurrentHP() << " HP)";
+                break;
+            case Stable:
+                out << Member << "(Stable)";
+                break;
+            case Dying:
+                out << Member << "(Dying " << Member.SuccessfulDeathSaves << ":" << Member.FailedDeathSaves << ")";
+                break;
+            case Dead:
+                out << Member << "(Dead)";
+                break;
         }
+    }
     return out;
 }

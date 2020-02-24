@@ -20,7 +20,7 @@ void Group::ClearStats()
 int Group::AddActor(std::string name, const StatBlock & actor)
 {
     int index = Members.size();
-    Members.push_back(Actor(name, actor, Team, out));
+    Members.emplace_back(Actor(name, actor, Team, out));
     return index;
 }
 
@@ -33,6 +33,15 @@ int Group::MembersAlive() const
     return alive;
 }
 
+int Group::MembersConscious() const
+{
+    int conscious = 0;
+    for (auto actor : Members)
+        if (actor.Conscious())
+            ++conscious;
+    return conscious;
+}
+
 Actor & Group::FirstAlive()
 {
     for (auto & actor : Members)
@@ -40,4 +49,13 @@ Actor & Group::FirstAlive()
             return actor;
 
     return Members[0];
+}
+
+Actor & Group::FirstConscious()
+{
+    for (auto & actor : Members)
+        if (actor.Conscious())
+            return actor;
+
+    return FirstAlive();
 }

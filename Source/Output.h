@@ -7,6 +7,8 @@
 #include <ostream>
 #include "Types.h"
 
+const int OUTPUT_LEVEL = 1;
+
 std::ostream& operator<<(std::ostream & out, const ActorQueue & actors);
 std::ostream& operator<<(std::ostream & out, const Arena & arena);
 std::ostream& operator<<(std::ostream & out, const Group & group);

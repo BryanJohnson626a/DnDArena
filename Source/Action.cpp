@@ -2,7 +2,7 @@
 // Created by bryan on 2/23/20.
 //
 
-#include <iostream>
+#include <ostream>
 #include "Action.h"
 #include "Dice.h"
 #include "Actor.h"
@@ -54,21 +54,44 @@ void Action::Attack(Actor & user, Actor & target, std::ostream & out) const
     int attack_mod = mod + target.Stats.Proficiency + target.Stats.AttackBonus;
     int roll = D20();
 
-    out << "Rolled " << roll << "+" << attack_mod << "(" << roll + attack_mod << ") vs " << target.Stats.AC << " AC ";
+    if (OUTPUT_LEVEL > 1) out << "Rolled " << roll << "->" << roll + attack_mod << " vs " << target.Stats.AC << " AC ";
 
-    if (roll + attack_mod > target.Stats.AC)
+    if (roll == 20 && roll + attack_mod > target.Stats.AC)
+    {
+        // crit
+        target.InfoStats.CritsReceived++;
+        user.InfoStats.CritsLanded++;
+        target.InfoStats.AttacksReceived++;
+        user.InfoStats.AttacksLanded++;
+
+        int damage = mod + target.Stats.DamageBonus;
+        for (int i = 0; i < NumDamageDice * 2; ++i)
+            damage += DamageDie();
+        if (OUTPUT_LEVEL > 1) out << "critical hit dealing " << damage << " damage!" << std::endl;
+
+        target.TakeDamage(damage);
+        user.InfoStats.DamageDone += damage;
+        if (!target.Alive()) ++user.InfoStats.Kills;
+    }
+    else if ((roll + attack_mod > target.Stats.AC || roll == 20) && roll != 1)
     {
         // hit
+        target.InfoStats.AttacksReceived++;
+        user.InfoStats.AttacksLanded++;
         int damage = mod + target.Stats.DamageBonus;
         for (int i = 0; i < NumDamageDice; ++i)
             damage += DamageDie();
 
-        out << "dealing " << damage << " damage." << std::endl;
+        if (OUTPUT_LEVEL > 1) out << "dealing " << damage << " damage." << std::endl;
 
         target.TakeDamage(damage);
+        user.InfoStats.DamageDone += damage;
+        if (!target.Alive()) ++user.InfoStats.Kills;
     } else
     {
         // miss
-        out << "Miss! " << std::endl;
+        target.InfoStats.AttacksAvoided++;
+        user.InfoStats.AttacksMissed++;
+        if (OUTPUT_LEVEL > 1) out << "Miss! " << std::endl;
     }
 }

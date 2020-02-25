@@ -1,0 +1,8 @@
+{
+  "Type": "MultiAction",
+  "Name": "MultiAttack",
+  "Actions": [
+      {"Name": "Longsword"},
+      {"Name": "Longsword"}
+  ]
+} 

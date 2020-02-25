@@ -12,10 +12,10 @@
 class Action;
 class Die;
 
-struct WeightedAction
+struct ActionInstance
 {
-    float Weight;
-    const Action & Action;
+    const Action * Action;
+    int Uses;
 };
 
 /**
@@ -30,12 +30,12 @@ struct StatBlock
 
     // Intrinsic Stats
 
-    int HDNum;
-    Die & HD;
+    int HDNum, HDSize;
 
     int Proficiency;
 
     int InitiativeBonus;
+    int Crit;
 
     // AC Bonus
     int ArmorValue, ShieldValue;
@@ -43,29 +43,30 @@ struct StatBlock
     // Bonuses from magic items/effects
     int AttackBonus, DamageBonus;
 
-    // Stat bonus
-    int STR, DEX, CON, INT, WIS, CHA;
+    // Stat score
+    int Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma;
 
     // Save proficiency
     bool SaveSTR, SaveDEX, SaveCON,
             SaveINT, SaveWIS, SaveCHA;
 
     // Derived stats
+
+
+    // Stat Modifier
+    int STR, DEX, CON, INT, WIS, CHA;
+
+    // Die used for rolling hit points.
+    Die * HD;
+
     int InitiativeMod, AC,
             STRSaveMod, DEXSaveMod, CONSaveMod,
             INTSaveMod, WISSaveMod, CHASaveMod;
 
-    std::vector<WeightedAction> Actions;
+    std::vector<ActionInstance> Actions;
     float ActionsTotalWeight;
-    std::vector<WeightedAction> BonusActions;
+    std::vector<ActionInstance> BonusActions;
     float BonusActionsTotalWeight;
-
-    std::vector<std::string> Immunities;
-    std::vector<std::string> Resistances;
-    std::vector<std::string> Weaknesses;
-    std::vector<std::string> ConditionImmunities;
-
-    void AddAction(Action action, float weight);
 };
 
 /**
@@ -91,34 +92,42 @@ public:
         int SavesDone;
         int SavesMade;
     };
+    struct ActionRep
+    {
+        const Action * Action;
+        int Uses;
+    };
 
-    Actor(std::string name, const StatBlock & stat_block, int team, std::ostream & out);
+    Actor(std::string name, const StatBlock & stat_block, int team);
 
     void Initialize();
     void ResetInfo();
-    const Statistics & Info();
-    [[nodiscard]] const Action & ChooseAction() const;
+    void DoRound(Arena & arena);
     void TakeAction(Arena & arena);
+    void TakeBonusAction(Arena & arena);
     void TakeDamage(int damage);
     void DeathSave();
-    const StatBlock & Stats;
+
+    [[nodiscard]] int ChooseAction(const std::vector<ActionRep> & actions) const;
+    [[nodiscard]] DeathState GetDeathState() const;
+    [[nodiscard]] bool Alive() const;
+    [[nodiscard]] bool Conscious() const;
+    [[nodiscard]] int CurrentHP() const;
+    [[nodiscard]] const Statistics & Info();
 
     std::string Name;
+    const StatBlock & Stats;
     int Initiative;
     int Team;
-
-    DeathState GetDeathState() const;
-    bool Alive() const;
-    bool Conscious() const;
-    int CurrentHP() const;
+    std::vector<ActionRep> ActionQueue;
+    std::vector<ActionRep> BonusActionQueue;
     int SuccessfulDeathSaves, FailedDeathSaves;
-
     Statistics InfoStats;
 private:
     int HP, MaxHP;
     DeathState State;
 
-    std::ostream & out;
-
     void DeathCheck();
+
+    void FillActionQueues();
 };

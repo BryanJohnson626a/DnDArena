@@ -10,13 +10,17 @@
 #include "Output.h"
 
 
-Action::Action(std::string name, Stat KeyAttribute, ActionType Type, int NumDamageDice, Die & DamageDie) :
-        Name(name), KeyAttribute(KeyAttribute), Type(Type), NumDamageDice(NumDamageDice), DamageDie(DamageDie)
-{}
-
-
 void StatBlock::CalculateDerivedStats()
 {
+    STR = std::floor((Strength - 10) / 2.0);
+    DEX = std::floor((Dexterity - 10) / 2.0);
+    CON = std::floor((Constitution - 10) / 2.0);
+    INT = std::floor((Intelligence - 10) / 2.0);
+    WIS = std::floor((Wisdom - 10) / 2.0);
+    CHA = std::floor((Charisma - 10) / 2.0);
+
+    HD = Die::Get(HDSize);
+
     InitiativeMod = DEX + Proficiency + InitiativeBonus;
     AC = 10 + DEX + ArmorValue + ShieldValue;
 
@@ -27,14 +31,7 @@ void StatBlock::CalculateDerivedStats()
     WISSaveMod = WIS + (SaveWIS ? Proficiency : 0);
     CHASaveMod = CHA + (SaveCHA ? Proficiency : 0);
 
-    Actions.emplace_back(WeightedAction{0, Action::UnarmedStrike});
-}
-
-void StatBlock::AddAction(Action action, float weight)
-{
-    std::pow(weight, 2);
-    Actions.emplace_back(WeightedAction{weight, action});
-    ActionsTotalWeight += weight;
+    Actions.emplace_back(ActionInstance{&UnarmedStrike, -1});
 }
 
 void Actor::Initialize()
@@ -47,14 +44,27 @@ void Actor::Initialize()
 
     MaxHP = 0;
     for (int i = 0; i < Stats.HDNum; ++i)
-        MaxHP += Stats.HD() + Stats.CON;
+        MaxHP += (*Stats.HD)() + Stats.CON;
 
     HP = MaxHP;
+
 }
 
-Actor::Actor(std::string name, const StatBlock & stat_block, int team, std::ostream & out) :
-        Stats(stat_block), Team(team), Name(name), out(out)
+void Actor::FillActionQueues()
 {
+    ActionQueue.clear();
+    for (const ActionInstance & weighted_action : Stats.Actions)
+        ActionQueue.push_back(ActionRep{weighted_action.Action, weighted_action.Uses});
+
+    BonusActionQueue.clear();
+    for (const ActionInstance & weighted_action : Stats.BonusActions)
+        BonusActionQueue.push_back(ActionRep{weighted_action.Action, weighted_action.Uses});
+}
+
+Actor::Actor(std::string name, const StatBlock & stat_block, int team) :
+        Stats(stat_block), Team(team), Name(name)
+{
+    FillActionQueues();
     Initialize();
     ResetInfo();
 }
@@ -79,18 +89,47 @@ bool Actor::Conscious() const
     return State == DeathState::Conscious;
 }
 
-void Actor::TakeAction(Arena & arena)
+void Actor::DoRound(Arena & arena)
 {
     if (Conscious())
     {
-        const Action & action = ChooseAction();
-        Actor & target = arena.OtherGroup(Team).FirstConscious();
-
-        if (OUTPUT_LEVEL > 1) out << Name << " uses " << action << " on " << target << ". ";
-
-        action(*this, target, out);
-    } else if (Alive())
+        TakeAction(arena);
+        TakeBonusAction(arena);
+    }
+    else if (Alive())
         DeathSave();
+}
+
+void Actor::TakeAction(Arena & arena)
+{
+    int action_index = ChooseAction(ActionQueue);
+    if (action_index != -1)
+    {
+        bool used = (*ActionQueue[action_index].Action)(*this, arena);
+        if (used)
+            --ActionQueue[action_index].Uses;
+    }
+}
+
+void Actor::TakeBonusAction(Arena & arena)
+{
+
+    int action_index = ChooseAction(BonusActionQueue);
+    if (action_index != -1)
+    {
+        bool used = (*BonusActionQueue[action_index].Action)(*this, arena);
+        if (used)
+            --BonusActionQueue[action_index].Uses;
+    }
+}
+
+int Actor::ChooseAction(const std::vector<ActionRep> & actions) const
+{
+    for (int i = 0; i < actions.size(); ++i)
+        if (actions[i].Uses != 0)
+            return i;
+
+    return -1;
 }
 
 void Actor::TakeDamage(int damage)
@@ -99,7 +138,8 @@ void Actor::TakeDamage(int damage)
     {
         FailedDeathSaves += 2;
         DeathCheck();
-    } else
+    }
+    else
     {
         HP -= damage;
         InfoStats.DamageTaken += damage;
@@ -107,7 +147,7 @@ void Actor::TakeDamage(int damage)
         {
             HP = 0;
             State = DeathState::Dying;
-            if (OUTPUT_LEVEL > 1) out << Name << " has fallen!" << std::endl;
+            if (Out(AllActions)) Out.O() << "        " << Name << " has fallen!" << std::endl;
         }
     }
 }
@@ -117,24 +157,12 @@ int Actor::CurrentHP() const
     return HP;
 }
 
-const Action & Actor::ChooseAction() const
-{
-    float distance = D100() * Stats.ActionsTotalWeight / 100;
-    for (const WeightedAction & action : Stats.Actions)
-    {
-        distance -= action.Weight;
-        if (distance < 0)
-            return action.Action;
-    }
-    return Stats.Actions[0].Action;
-}
-
 void Actor::DeathSave()
 {
     if (SuccessfulDeathSaves < 3 && FailedDeathSaves < 3)
     {
         int roll = D20();
-        if (OUTPUT_LEVEL > 1) out << Name << " makes a death saving throw: " << roll;
+        if (Out(AllActions)) Out.O() << "    " << Name << " makes a death saving throw: " << roll;
         if (roll == 20)
         {
             // Miracluous Recovery.
@@ -142,22 +170,24 @@ void Actor::DeathSave()
             SuccessfulDeathSaves = 0;
             FailedDeathSaves = 0;
             State = DeathState::Conscious;
-            if (OUTPUT_LEVEL > 1) out << " Critical Success!" << std::endl;
-            if (OUTPUT_LEVEL > 1) out << Name << " recovers!" << std::endl;
+            if (Out(AllActions)) Out.O() << " Critical Success!" << std::endl;
+            if (Out(AllActions)) Out.O() << Name << " recovers!" << std::endl;
             return;
-        } else if (roll >= 10)
+        }
+        else if (roll >= 10)
         {
-            if (OUTPUT_LEVEL > 1) out << " Success." << std::endl;
+            if (Out(AllActions)) Out.O() << " Success." << std::endl;
             ++SuccessfulDeathSaves;
-        } else if (roll > 1)
+        }
+        else if (roll > 1)
         {
-            if (OUTPUT_LEVEL > 1) out << " Fail." << std::endl;
+            if (Out(AllActions)) Out.O() << " Fail." << std::endl;
             ++FailedDeathSaves;
         }
         else
         {
-            if (OUTPUT_LEVEL > 1) out << " Critical fail!" << std::endl;
-            FailedDeathSaves +=2;
+            if (Out(AllActions)) Out.O() << " Critical fail!" << std::endl;
+            FailedDeathSaves += 2;
         }
     }
     DeathCheck();
@@ -170,12 +200,13 @@ void Actor::DeathCheck()
         // Dead
         State = DeathState::Dead;
         InfoStats.Deaths++;
-        if (OUTPUT_LEVEL > 1) out << Name << " died!" << std::endl;
-    } else if (State == DeathState::Dying && SuccessfulDeathSaves >= 3)
+        if (Out(AllActions)) Out.O() << "    " << Name << " died!" << std::endl;
+    }
+    else if (State == DeathState::Dying && SuccessfulDeathSaves >= 3)
     {
         // Stable
         State = DeathState::Stable;
-        if (OUTPUT_LEVEL > 1) out << Name << " has stabilized." << std::endl;
+        if (Out(AllActions)) Out.O() << "    " << Name << " has stabilized." << std::endl;
     }
 }
 
@@ -183,4 +214,3 @@ DeathState Actor::GetDeathState() const
 {
     return State;
 }
-

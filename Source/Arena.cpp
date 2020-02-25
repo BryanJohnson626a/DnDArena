@@ -13,32 +13,39 @@
 void Arena::DoBattles(int trials)
 {
     for (int i = 0; i < trials; ++i)
+    {
         DoBattle();
+    }
 
-    if (OUTPUT_LEVEL > 0)
+    if (Out(TrialResults)) Out.O() << std::endl;
+    if (Out(Results))
         for (Group & group : Combatants)
-            out << group.Name << " won " << group.Wins << " times (" << 100 * float(group.Wins) / trials << "%)." << std::endl;
+            Out.O() << group.Name << " won " << group.Wins <<
+                    " times (" << float(group.Wins) / float(trials) << "%)." << std::endl;
 }
 
 int Arena::DoBattle()
 {
     RollInitiative();
     ++Battles;
+    if (Out(AllActions))
+        RollInitiative();
 
-    if (OUTPUT_LEVEL > 1)
-        out << *this << std::endl;
+    if (Out(AllActions)) Out.O() << *this << std::endl;
 
-    if (OUTPUT_LEVEL > 1)
-        out << InitiativeQueue << std::endl;
+    if (Out(AllActions)) Out.O() << std::endl;
+    if (Out(AllActions)) Out.O() << InitiativeQueue << std::endl;
 
     while (GroupsAlive() > 1)
     {
+        if (Out(OL::AllActions)) Out.O() << *this << std::endl;
         DoRound();
-        if (OUTPUT_LEVEL > 1)
-            out << std::endl << *this << std::endl << std::endl;
     }
 
-    for(Group & group: Combatants)
+    if (Out(TrialResults)) Out.O() << *this << std::endl;
+    if (Out(AllActions)) Out.O() << std::endl;
+
+    for (Group & group: Combatants)
         if (group.MembersAlive() > 0)
         {
             ++group.Wins;
@@ -51,18 +58,18 @@ int Arena::DoBattle()
 void Arena::DoRound()
 {
     for (auto actor : InitiativeQueue)
-        actor->TakeAction(*this);
+        actor->DoRound(*this);
 }
 
 void Arena::Initialize()
 {
     Battles = 0;
-    for (Group & group : Combatants)
+    for (Group & group: Combatants)
         group.ClearStats();
 
     // Remake the initiative queue as pointers may have expired.
     InitiativeQueue.empty();
-    for (Group & group : Combatants)
+    for (Group & group: Combatants)
         for (Actor & actor : group.Members)
             InitiativeQueue.push_back(&actor);
 }
@@ -80,7 +87,7 @@ int Arena::AddCombatant(std::string name, const StatBlock & stats, int team)
 int Arena::AddTeam(std::string name)
 {
     int team = Combatants.size();
-    Combatants.emplace_back(Group(name, team, out));
+    Combatants.emplace_back(Group(name, team));
     return team;
 }
 
@@ -125,9 +132,6 @@ Group & Arena::OtherGroup(int team)
 
     return Combatants[0];
 }
-
-Arena::Arena(std::ostream & output_stream) : out(output_stream), Battles(0)
-{}
 
 const Groups & Arena::GetCombatants() const
 {

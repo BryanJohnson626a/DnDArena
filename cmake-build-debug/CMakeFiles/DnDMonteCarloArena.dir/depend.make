@@ -7,8 +7,10 @@ CMakeFiles/DnDMonteCarloArena.dir/Source/Action.cpp.o: ../Source/Actor.h
 CMakeFiles/DnDMonteCarloArena.dir/Source/Action.cpp.o: ../Source/Arena.h
 CMakeFiles/DnDMonteCarloArena.dir/Source/Action.cpp.o: ../Source/Dice.h
 CMakeFiles/DnDMonteCarloArena.dir/Source/Action.cpp.o: ../Source/Group.h
+CMakeFiles/DnDMonteCarloArena.dir/Source/Action.cpp.o: ../Source/ImportJson.h
 CMakeFiles/DnDMonteCarloArena.dir/Source/Action.cpp.o: ../Source/Output.h
 CMakeFiles/DnDMonteCarloArena.dir/Source/Action.cpp.o: ../Source/Types.h
+CMakeFiles/DnDMonteCarloArena.dir/Source/Action.cpp.o: _deps/nlohmann_json_dl-src/single_include/nlohmann/json.hpp
 
 CMakeFiles/DnDMonteCarloArena.dir/Source/Actor.cpp.o: ../Source/Action.h
 CMakeFiles/DnDMonteCarloArena.dir/Source/Actor.cpp.o: ../Source/Actor.cpp
@@ -36,6 +38,15 @@ CMakeFiles/DnDMonteCarloArena.dir/Source/Group.cpp.o: ../Source/Group.cpp
 CMakeFiles/DnDMonteCarloArena.dir/Source/Group.cpp.o: ../Source/Group.h
 CMakeFiles/DnDMonteCarloArena.dir/Source/Group.cpp.o: ../Source/Types.h
 
+CMakeFiles/DnDMonteCarloArena.dir/Source/ImportJson.cpp.o: ../Source/Action.h
+CMakeFiles/DnDMonteCarloArena.dir/Source/ImportJson.cpp.o: ../Source/Actor.h
+CMakeFiles/DnDMonteCarloArena.dir/Source/ImportJson.cpp.o: ../Source/Dice.h
+CMakeFiles/DnDMonteCarloArena.dir/Source/ImportJson.cpp.o: ../Source/ImportJson.cpp
+CMakeFiles/DnDMonteCarloArena.dir/Source/ImportJson.cpp.o: ../Source/ImportJson.h
+CMakeFiles/DnDMonteCarloArena.dir/Source/ImportJson.cpp.o: ../Source/Output.h
+CMakeFiles/DnDMonteCarloArena.dir/Source/ImportJson.cpp.o: ../Source/Types.h
+CMakeFiles/DnDMonteCarloArena.dir/Source/ImportJson.cpp.o: _deps/nlohmann_json_dl-src/single_include/nlohmann/json.hpp
+
 CMakeFiles/DnDMonteCarloArena.dir/Source/Output.cpp.o: ../Source/Action.h
 CMakeFiles/DnDMonteCarloArena.dir/Source/Output.cpp.o: ../Source/Actor.h
 CMakeFiles/DnDMonteCarloArena.dir/Source/Output.cpp.o: ../Source/Arena.h
@@ -44,11 +55,12 @@ CMakeFiles/DnDMonteCarloArena.dir/Source/Output.cpp.o: ../Source/Output.cpp
 CMakeFiles/DnDMonteCarloArena.dir/Source/Output.cpp.o: ../Source/Output.h
 CMakeFiles/DnDMonteCarloArena.dir/Source/Output.cpp.o: ../Source/Types.h
 
-CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o: ../Source/Action.h
 CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o: ../Source/Actor.h
 CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o: ../Source/Arena.h
-CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o: ../Source/Dice.h
 CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o: ../Source/Group.h
+CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o: ../Source/ImportJson.h
+CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o: ../Source/Output.h
 CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o: ../Source/Types.h
 CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o: ../main.cpp
+CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o: _deps/nlohmann_json_dl-src/single_include/nlohmann/json.hpp
 

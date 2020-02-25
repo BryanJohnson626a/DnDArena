@@ -8,6 +8,21 @@
 #include "Arena.h"
 #include "Group.h"
 
+Output Out = Output();
+
+Output::Output(std::ostream & out_stream, enum OL level) : OutStream(&out_stream), Level(level)
+{}
+
+bool Output::operator()(enum OL level) const
+{
+    return (level <= MAX_OUTPUT_LEVEL && level <= Level);
+}
+
+std::ostream & Output::O()
+{
+    return *OutStream;
+}
+
 std::ostream & operator<<(std::ostream & out, const ActorQueue & actors)
 {
     out << "Initiative order:" << std::endl;

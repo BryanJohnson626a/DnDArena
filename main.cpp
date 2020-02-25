@@ -5,64 +5,26 @@
 #include <iostream>
 
 #include "Source/Arena.h"
-#include "Source/Actor.h"
-#include "Source/Dice.h"
-#include "Source/Action.h"
+#include "Source/ImportJson.h"
+#include "Source/Output.h"
 
 int main()
 {
-    Arena BG(std::cout);
+    Out.Level = AllActions;
+    StatBlock * Fighter = ParseStatBlock("Fighter5");
+    if (Fighter == nullptr)
+        return 0;
 
-    Action Club{"Club", Stat::Strength, ActionType::MeleeAttack, 1, D4};
-    Action Greataxe{"Greataxe", Stat::Strength, ActionType::MeleeAttack, 1, D12};
-    Action Javelin{"Javelin", Stat::Strength, ActionType::RangedAttack, 1, D6};
-    Action Scimitar{"Scimitar", Stat::Dexterity, ActionType::MeleeAttack, 1, D6};
-    Action Shortbow{"Shortbow", Stat::Dexterity, ActionType::RangedAttack, 1, D6};
-    Action LGreatclub{"Large Greatclub", Stat::Strength, ActionType::MeleeAttack, 2, D8};
-    Action LJavelin{"Large Javelin", Stat::Strength, ActionType::RangedAttack, 2, D6};
+    auto * BG = new Arena();
 
-    StatBlock Commoner{"Commoner", "Humanoid", 1, D8, 2};
-    Commoner.CalculateDerivedStats();
-    Commoner.AddAction(Club, 1);
+    BG->AddTeam("Team A");
+    BG->AddTeam("Team B");
+    BG->AddCombatant("Alice", *Fighter, 0);
+    BG->AddCombatant("Bob", *Fighter, 1);
 
-    StatBlock Orc{"Orc", "Humanoid", 2, D8, 2,
-                  0, 2, 0, 0, 0,
-                  3, 1, 3, -2, 0, 0};
-    Orc.CalculateDerivedStats();
-    Orc.AddAction(Greataxe, 5);
-    Orc.AddAction(Javelin, 1);
+    BG->Initialize();
 
-    StatBlock Goblin{"Goblin", "Humanoid", 2, D6, 2,
-                     0, 1, 2, 0, 0,
-                     -1, 2, 0, 0, -1, -1};
-    Goblin.CalculateDerivedStats();
-    Goblin.AddAction(LGreatclub, 5);
-    Goblin.AddAction(LJavelin, 1);
-
-
-    StatBlock Ogre{"Ogre", "Giant", 7, D10, 2,
-                   0, 2, 0, 0, 0,
-                   4, -1, 3, -3, -2, -2};
-    Ogre.CalculateDerivedStats();
-    Ogre.AddAction(Greataxe, 5);
-    Ogre.AddAction(Javelin, 1);
-
-    BG.AddTeam("Dirty Peasants");
-    BG.AddTeam("Disney");
-
-    BG.AddCombatant("Dirty Peasant #1", Commoner, 0);
-    BG.AddCombatant("Dirty Peasant #2", Commoner, 0);
-    BG.AddCombatant("Dirty Peasant #3", Commoner, 0);
-    BG.AddCombatant("Dirty Peasant #4", Commoner, 0);
-    BG.AddCombatant("Dirty Peasant #5", Commoner, 0);
-    BG.AddCombatant("Dirty Peasant #6", Commoner, 0);
-    BG.AddCombatant("Dirty Peasant #7", Commoner, 0);
-    BG.AddCombatant("Dirty Peasant #8", Commoner, 0);
-
-    BG.AddCombatant("Shrek", Ogre, 1);
-
-    BG.Initialize();
-    BG.DoBattles(100000);
+    BG->DoBattles(1);
 
     return 0;
 }

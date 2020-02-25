@@ -13,15 +13,7 @@ enum Stat
     Constitution,
     Intelligence,
     Wisdom,
-    Charisma
-};
-
-enum ActionType
-{
-    MeleeAttack,
-    RangedAttack,
-    Spell,
-    Special
+    Charisma,
 };
 
 enum DeathState
@@ -29,9 +21,10 @@ enum DeathState
     Conscious,
     Stable,
     Dying,
-    Dead
+    Dead,
 };
 
+class StatBlock;
 class Arena;
 class Group;
 class Actor;

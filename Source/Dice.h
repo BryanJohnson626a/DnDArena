@@ -36,10 +36,17 @@ public:
      */
     int operator()();
 
+    static Die * Get(int size);
+
+    const int Low, High;
+
 private:
     static RNG generator;
     std::uniform_int_distribution<int> roller;
 };
+
+int Roll(Die * die);
+
 
 extern Die D0;
 extern Die D1;

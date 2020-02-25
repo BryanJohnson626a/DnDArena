@@ -3,31 +3,24 @@
 //
 
 #include <ostream>
+#include <utility>
 #include "Action.h"
 #include "Dice.h"
 #include "Actor.h"
 #include "Arena.h"
 #include "Output.h"
+#include "ImportJson.h"
 
-Action Action::UnarmedStrike{"Unarmed Strike", Stat::Strength, ActionType::MeleeAttack, 1, D1};
+std::map<std::string, Action *> Action::ActionMap;
+WeaponAttack UnarmedStrike("Unarmed Strike", Stat::Strength, 1, 1);
 
-void Action::operator()(Actor & user, Actor & target, std::ostream & out) const
+
+bool WeaponAttack::operator()(Actor & user, Arena & arena) const
 {
-    switch (Type)
-    {
-        case MeleeAttack:
-        case RangedAttack:
-            Attack(user, target, out);
-            break;
-        case Spell:
-            break;
-        case Special:
-            break;
-    }
-}
+    Actor & target = arena.OtherGroup(user.Team).FirstConscious();
+    if (!target.Alive())
+        return false;
 
-void Action::Attack(Actor & user, Actor & target, std::ostream & out) const
-{
     int mod = 0;
     switch (KeyAttribute)
     {
@@ -51,12 +44,15 @@ void Action::Attack(Actor & user, Actor & target, std::ostream & out) const
             break;
     }
 
+    if (Out(AllActions)) Out.O() << "    " << user.Name << " attacks " << target << " with " << Name << ". ";
+
     int attack_mod = mod + target.Stats.Proficiency + target.Stats.AttackBonus;
     int roll = D20();
 
-    if (OUTPUT_LEVEL > 1) out << "Rolled " << roll << "->" << roll + attack_mod << " vs " << target.Stats.AC << " AC ";
+    if (Out(AllActions))
+        Out.O() << "Rolled " << roll << "->" << roll + attack_mod << " vs " << target.Stats.AC << " AC ";
 
-    if (roll == 20 && roll + attack_mod > target.Stats.AC)
+    if (roll >= user.Stats.Crit && roll + attack_mod > target.Stats.AC)
     {
         // crit
         target.InfoStats.CritsReceived++;
@@ -64,10 +60,10 @@ void Action::Attack(Actor & user, Actor & target, std::ostream & out) const
         target.InfoStats.AttacksReceived++;
         user.InfoStats.AttacksLanded++;
 
-        int damage = mod + target.Stats.DamageBonus;
-        for (int i = 0; i < NumDamageDice * 2; ++i)
-            damage += DamageDie();
-        if (OUTPUT_LEVEL > 1) out << "critical hit dealing " << damage << " damage!" << std::endl;
+        int damage = mod + user.Stats.DamageBonus;
+        for (int i = 0; i < DamageDiceNum * 2; ++i)
+            damage += Roll(DamageDie);
+        if (Out(AllActions)) Out.O() << "critical hit dealing " << damage << " damage!" << std::endl;
 
         target.TakeDamage(damage);
         user.InfoStats.DamageDone += damage;
@@ -78,20 +74,57 @@ void Action::Attack(Actor & user, Actor & target, std::ostream & out) const
         // hit
         target.InfoStats.AttacksReceived++;
         user.InfoStats.AttacksLanded++;
-        int damage = mod + target.Stats.DamageBonus;
-        for (int i = 0; i < NumDamageDice; ++i)
-            damage += DamageDie();
+        int damage = mod + user.Stats.DamageBonus;
+        for (int i = 0; i < DamageDiceNum; ++i)
+            damage += Roll(DamageDie);
 
-        if (OUTPUT_LEVEL > 1) out << "dealing " << damage << " damage." << std::endl;
+        if (Out(AllActions)) Out.O() << "dealing " << damage << " damage." << std::endl;
 
         target.TakeDamage(damage);
         user.InfoStats.DamageDone += damage;
         if (!target.Alive()) ++user.InfoStats.Kills;
-    } else
+    }
+    else
     {
         // miss
         target.InfoStats.AttacksAvoided++;
         user.InfoStats.AttacksMissed++;
-        if (OUTPUT_LEVEL > 1) out << "Miss! " << std::endl;
+        if (Out(AllActions)) Out.O() << "Miss! " << std::endl;
     }
+    return true;
+}
+
+WeaponAttack::WeaponAttack(std::string name, Stat key_attribute, int number_of_damage_dice, int size_of_damage_dice) :
+        Action(std::move(name)), KeyAttribute(key_attribute), DamageDiceNum(number_of_damage_dice),
+        DamageDie(Die::Get(size_of_damage_dice))
+{}
+
+Action::Action(std::string name) : Name(std::move(name))
+{
+    ActionMap.insert({Name, this});
+}
+
+Action * Action::Get(std::string name)
+{
+    auto iter = ActionMap.find(name);
+    if (iter == ActionMap.end())
+    {
+        Action * new_action = ParseAction(name);
+        if (new_action == nullptr)
+            return nullptr;
+        else
+        {
+            ActionMap.insert({name, new_action});
+            return new_action;
+        }
+    }
+    else
+        return iter->second;
+}
+
+bool MultiAction::operator()(Actor & user, Arena & arena) const
+{
+    for (Action * action : Actions)
+        (*action)(user, arena);
+    return true;
 }

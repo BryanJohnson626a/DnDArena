@@ -6,13 +6,13 @@
 #include "Group.h"
 #include "Actor.h"
 
-Group::Group(std::string name, int team, std::ostream & out) : Name(name), Team(team), out(out), Wins(0)
+Group::Group(std::string name, int team) : Name(name), Team(team), Wins(0)
 {}
 
 void Group::ClearStats()
 {
     Wins = 0;
-    for (Actor & Member : Members)
+    for (Actor & Member: Members)
         Member.ResetInfo();
 }
 
@@ -20,7 +20,7 @@ void Group::ClearStats()
 int Group::AddActor(std::string name, const StatBlock & actor)
 {
     int index = Members.size();
-    Members.emplace_back(Actor(name, actor, Team, out));
+    Members.emplace_back(Actor(name, actor, Team));
     return index;
 }
 

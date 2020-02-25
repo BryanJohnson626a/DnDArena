@@ -4,6 +4,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/DnDMonteCarloArena.dir/Source/Arena.cpp.o"
   "CMakeFiles/DnDMonteCarloArena.dir/Source/Dice.cpp.o"
   "CMakeFiles/DnDMonteCarloArena.dir/Source/Group.cpp.o"
+  "CMakeFiles/DnDMonteCarloArena.dir/Source/ImportJson.cpp.o"
   "CMakeFiles/DnDMonteCarloArena.dir/Source/Output.cpp.o"
   "CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o"
   "DnDMonteCarloArena"

@@ -8,8 +8,10 @@ CMakeFiles/DnDMonteCarloArena.dir/Source/Action.cpp.o
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Arena.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Dice.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Group.h
+ /home/bryan/Documents/Projects/dndmontecarloarena/Source/ImportJson.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Output.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Types.h
+ _deps/nlohmann_json_dl-src/single_include/nlohmann/json.hpp
 CMakeFiles/DnDMonteCarloArena.dir/Source/Actor.cpp.o
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Action.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Actor.cpp
@@ -36,6 +38,15 @@ CMakeFiles/DnDMonteCarloArena.dir/Source/Group.cpp.o
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Group.cpp
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Group.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Types.h
+CMakeFiles/DnDMonteCarloArena.dir/Source/ImportJson.cpp.o
+ /home/bryan/Documents/Projects/dndmontecarloarena/Source/Action.h
+ /home/bryan/Documents/Projects/dndmontecarloarena/Source/Actor.h
+ /home/bryan/Documents/Projects/dndmontecarloarena/Source/Dice.h
+ /home/bryan/Documents/Projects/dndmontecarloarena/Source/ImportJson.cpp
+ /home/bryan/Documents/Projects/dndmontecarloarena/Source/ImportJson.h
+ /home/bryan/Documents/Projects/dndmontecarloarena/Source/Output.h
+ /home/bryan/Documents/Projects/dndmontecarloarena/Source/Types.h
+ _deps/nlohmann_json_dl-src/single_include/nlohmann/json.hpp
 CMakeFiles/DnDMonteCarloArena.dir/Source/Output.cpp.o
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Action.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Actor.h
@@ -45,10 +56,11 @@ CMakeFiles/DnDMonteCarloArena.dir/Source/Output.cpp.o
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Output.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Types.h
 CMakeFiles/DnDMonteCarloArena.dir/main.cpp.o
- /home/bryan/Documents/Projects/dndmontecarloarena/Source/Action.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Actor.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Arena.h
- /home/bryan/Documents/Projects/dndmontecarloarena/Source/Dice.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Group.h
+ /home/bryan/Documents/Projects/dndmontecarloarena/Source/ImportJson.h
+ /home/bryan/Documents/Projects/dndmontecarloarena/Source/Output.h
  /home/bryan/Documents/Projects/dndmontecarloarena/Source/Types.h
  /home/bryan/Documents/Projects/dndmontecarloarena/main.cpp
+ _deps/nlohmann_json_dl-src/single_include/nlohmann/json.hpp

@@ -12,7 +12,6 @@ class Arena
 {
 public:
 
-    Arena(std::ostream & output_stream);
 /**
  * Adds a new team to the arena.
  * @return The index of the new team.
@@ -39,11 +38,11 @@ public:
  */
     int DoBattle();
 
-    Group & OtherGroup(int team);
-    int GroupsAlive() const;
-    int GroupsConscious() const;
-    const Groups & GetCombatants() const;
-    int NumBattles() const;
+    [[nodiscard]] Group & OtherGroup(int team);
+    [[nodiscard]] int GroupsAlive() const;
+    [[nodiscard]] int GroupsConscious() const;
+    [[nodiscard]] const Groups & GetCombatants() const;
+    [[nodiscard]] int NumBattles() const;
 
     void DoBattles(int trials);
 
@@ -54,8 +53,4 @@ private:
     Groups Combatants;
     ActorQueue InitiativeQueue;
     int Battles;
-
-private:
-
-    std::ostream & out;
 };

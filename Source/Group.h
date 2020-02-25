@@ -8,9 +8,7 @@
 #include <string>
 
 #include "Types.h"
-
-class StatBlock;
-class Actor;
+#include "Actor.h"
 
 using Actors = std::vector<Actor>;
 
@@ -18,7 +16,7 @@ class Group
 {
 public:
 
-    Group(std::string name, int team, std::ostream & out);
+    Group(std::string name, int team);
 
     void ClearStats();
     int AddActor(std::string name, const StatBlock & actor);
@@ -33,7 +31,5 @@ public:
     int Wins;
     int Team;
     Actors Members;
-
-    std::ostream & out;
 };
 

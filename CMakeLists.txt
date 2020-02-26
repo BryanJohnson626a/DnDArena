@@ -9,7 +9,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json_dl)
 
-add_executable(DnDMonteCarloArena main.cpp Source/Actor.h Source/Action.h Source/Group.h Source/Arena.cpp Source/Arena.h Source/Types.h Source/Group.cpp Source/Dice.cpp Source/Dice.h Source/Actor.cpp Source/Action.cpp Source/Output.cpp Source/Output.h Source/ImportJson.cpp Source/ImportJson.h)
+add_executable(DnDMonteCarloArena main.cpp Source/Actor.h Source/Action.h Source/Group.h Source/Arena.cpp Source/Arena.h Source/Types.h Source/Group.cpp Source/Dice.cpp Source/Dice.h Source/Actor.cpp Source/Action.cpp Source/Output.cpp Source/Output.h Source/ImportJson.cpp Source/ImportJson.h Source/Effect.cpp Source/Effect.h)
 
 target_compile_features(DnDMonteCarloArena PRIVATE
         cxx_std_20

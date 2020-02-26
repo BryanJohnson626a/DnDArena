@@ -31,10 +31,17 @@ public:
     static void SetSeed(unsigned seed);
 
     /**
-     * Rolls the die.
-     * @return The number rolled on the die.
+     * Roll the die multiple times.
+     * @param times How many times to roll.
+     * @return The total of all dice rolled.
      */
-    int operator()();
+    int Roll(int times);
+
+    /**
+     * Roll the die once.
+     * @return The result of the die roll.
+     */
+    int Roll();
 
     static Die * Get(int size);
 
@@ -44,8 +51,6 @@ private:
     static RNG generator;
     std::uniform_int_distribution<int> roller;
 };
-
-int Roll(Die * die);
 
 
 extern Die D0;

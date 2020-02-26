@@ -23,7 +23,7 @@ std::ostream & Output::O()
     return *OutStream;
 }
 
-std::ostream & operator<<(std::ostream & out, const ActorQueue & actors)
+std::ostream & operator<<(std::ostream & out, const ActorPtrs & actors)
 {
     out << "Initiative order:" << std::endl;
     for (const Actor * actor : actors)
@@ -79,17 +79,14 @@ std::ostream & operator<<(std::ostream & out, const Group & group)
         switch (Member.GetDeathState())
         {
 
-            case Conscious:
-                out << Member << "(" << Member.CurrentHP() << " HP)";
+            case Conscious:out << Member << "(" << Member.CurrentHP() << " HP)";
                 break;
-            case Stable:
-                out << Member << "(Stable)";
+            case Stable:out << Member << "(Stable)";
                 break;
             case Dying:
                 out << Member << "(Dying " << Member.SuccessfulDeathSaves << ":" << Member.FailedDeathSaves << ")";
                 break;
-            case Dead:
-                out << Member << "(Dead)";
+            case Dead:out << Member << "(Dead)";
                 break;
         }
     }

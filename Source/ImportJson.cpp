@@ -8,12 +8,19 @@
 #include "ImportJson.h"
 #include "Actor.h"
 #include "Action.h"
+#include "Effect.h"
 #include "Dice.h"
 #include "Output.h"
 
+Action * LoadSpecial(const nlohmann::json & js);
+
+Action * LoadMultiAction(const nlohmann::json & js);
+
+Action * LoadWeaponAttack(const nlohmann::json & json);
+
 nlohmann::json OpenJson(std::string_view file_name)
 {
-    if (Out(Results)) Out.O() << "Loading \"" << file_name << "\"." << std::endl;
+    if (Out(Info)) Out.O() << "Loading \"" << file_name << "\"." << std::endl;
 
     std::string path = std::string("./Resources/") + std::string(file_name) + std::string(".json");
 
@@ -63,26 +70,75 @@ void from_json(const nlohmann::json & js, Action *& action)
     action = Action::Get(name);
 }
 
-void from_json(const nlohmann::json & js, WeaponAttack & weapon_attack)
+Effect * LoadEffect(const nlohmann::json & js);
+
+void from_json(const nlohmann::json & js, const Effect *& effect)
 {
-    Import(js, weapon_attack.Name, "Name");
-    Import(js, weapon_attack.KeyAttribute, "KeyAttribute");
-    Import(js, weapon_attack.DamageDiceNum, "DamageDiceNum");
-    int die_size;
-    Import(js, die_size, "DamageDiceSize");
-    weapon_attack.DamageDie = Die::Get(die_size);
+    std::string name;
+    Import(js, name, "Name");
+    effect = LoadEffect(js);
 }
 
-void from_json(const nlohmann::json & js, MultiAction & multi_action)
+void from_json(const nlohmann::json & js, Effect *& effect)
 {
-    Import(js, multi_action.Name, "Name");
-    Import(js, multi_action.Actions, "Actions");
+    std::string name;
+    Import(js, name, "Name");
+    effect = LoadEffect(js);
+}
+
+void from_json(const nlohmann::json & js, WeaponAttack & action)
+{
+    Import(js, action.Name, "Name");
+    Import(js, action.Target, "Target");
+    Import(js, action.KeyAttribute, "KeyAttribute");
+    Import(js, action.DamageDiceNum, "DamageDiceNum");
+    int die_size;
+    Import(js, die_size, "DamageDiceSize");
+    action.DamageDie = Die::Get(die_size);
+}
+
+void from_json(const nlohmann::json & js, MultiAction & action)
+{
+    Import(js, action.Name, "Name");
+    Import(js, action.Target, "Target");
+    Import(js, action.Actions, "Actions");
+}
+
+void from_json(const nlohmann::json & js, SpecialAction & action)
+{
+    Import(js, action.Name, "Name");
+    Import(js, action.Target, "Target");
+    Import(js, action.Effects, "Effects");
 }
 
 void from_json(const nlohmann::json & js, ActionInstance & weighted_action)
 {
     Import(js, weighted_action.Action, "Action");
     Import(js, weighted_action.Uses, "Uses");
+}
+
+void from_json(const nlohmann::json & js, Effect & effect)
+{
+    std::string type;
+    Import(js, type, "Type");
+
+}
+
+void from_json(const nlohmann::json & js, EffectHealing & effect)
+{
+    Import(js, effect.HealingDieNum, "HealingDieNum");
+    int die_size;
+    Import(js, die_size, "HealingDieSize");
+    effect.HealingDie = Die::Get(die_size);
+    Import(js, effect.HealingBonus, "HealingBonus");
+    Import(js, effect.KeyAttribute, "KeyAttribute");
+    Import(js, effect.AddLevelMod, "AddLevelMod");
+}
+
+void from_json(const nlohmann::json & js, EffectImmediateExtraActions & effect)
+{
+    Import(js, effect.ExtraActions, "ExtraActions");
+    Import(js, effect.ExtraBonusActions, "ExtraBonusActions");
 }
 
 bool Invalid(const ActionInstance & a)
@@ -140,6 +196,27 @@ StatBlock * ParseStatBlock(std::string_view file_name)
     return block;
 }
 
+Action * LoadWeaponAttack(const nlohmann::json & js)
+{
+    auto * weapon_attack = new WeaponAttack();
+    js.get_to(*weapon_attack);
+    return weapon_attack;
+}
+
+Action * LoadMultiAction(const nlohmann::json & js)
+{
+    auto * multi_action = new MultiAction();
+    js.get_to(*multi_action);
+    return multi_action;
+}
+
+Action * LoadSpecial(const nlohmann::json & js)
+{
+    auto * special = new SpecialAction();
+    js.get_to(*special);
+    return special;
+}
+
 Action * ParseAction(std::string_view file_name)
 {
     nlohmann::json js = OpenJson(file_name);
@@ -149,23 +226,37 @@ Action * ParseAction(std::string_view file_name)
 
     std::string type;
     Import(js, type, "Type");
-    Action * action = nullptr;
-    if (type == "WeaponAttack")
-    {
-        auto * weapon_attack = new WeaponAttack();
-        js.get_to(*weapon_attack);
-        action = weapon_attack;
-    }
-    else if (type == "MultiAction")
-    {
-        auto * multi_action = new MultiAction();
-        js.get_to(*multi_action);
-        action = multi_action;
-    }
-    else
-    {
-        if (Out(Warnings)) Out.O() << "Unrecognized action type \"" << type << "\"." << std::endl;
-    }
 
-    return action;
+    if (type == "Special") return LoadSpecial(js);
+    if (type == "WeaponAttack") return LoadWeaponAttack(js);
+    if (type == "MultiAction") return LoadMultiAction(js);
+
+    if (Out(Warnings)) Out.O() << "Unrecognized action type \"" << type << "\"." << std::endl;
+    return nullptr;
+}
+
+Effect * LoadEffectHealing(const nlohmann::json & js)
+{
+    auto * effect = new EffectHealing();
+    js.get_to(*effect);
+    return effect;
+}
+
+Effect * LoadEffectImmediateExtraAction(const nlohmann::json & js)
+{
+    auto * effect = new EffectImmediateExtraActions();
+    js.get_to(*effect);
+    return effect;
+}
+
+Effect * LoadEffect(const nlohmann::json & js)
+{
+    std::string type;
+    Import(js, type, "Type");
+
+    if (type == "Healing") return LoadEffectHealing(js);
+    if (type == "ImmediateExtraActions") return LoadEffectImmediateExtraAction(js);
+
+    if (Out(Warnings)) Out.O() << "Unrecognized effect type \"" << type << "\"." << std::endl;
+    return nullptr;
 }

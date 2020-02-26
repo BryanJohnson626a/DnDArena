@@ -23,19 +23,11 @@
   "SaveCHA": false,
   "Crit": 19,
   "Actions": [
-    {
-      "Action": {"Name": "MultiAttack"},
-      "Uses":-1
-    },
-    {
-      "Action": {"Name": "Longsword"},
-      "Uses":-1
-    }
+    {"Action": {"Name": "MultiAttack"}, "Uses":-1},
+    {"Action": {"Name": "Longsword"}, "Uses":-1}
   ],
   "BonusActions": [
-    {
-      "Action": {"Name": "ActionSurge"},
-      "Uses":1
-    }
+    {"Action": {"Name": "ActionSurge"}, "Uses":1},
+    {"Action":{"Name":"SecondWind"}, "Uses":1}
     ]
 } 

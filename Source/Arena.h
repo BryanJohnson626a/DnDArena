@@ -39,18 +39,23 @@ public:
     int DoBattle();
 
     [[nodiscard]] Group & OtherGroup(int team);
+
     [[nodiscard]] int GroupsAlive() const;
+
     [[nodiscard]] int GroupsConscious() const;
+
     [[nodiscard]] const Groups & GetCombatants() const;
+
     [[nodiscard]] int NumBattles() const;
 
     void DoBattles(int trials);
 
 private:
     void RollInitiative();
+
     void DoRound();
 
     Groups Combatants;
-    ActorQueue InitiativeQueue;
+    ActorPtrs InitiativeQueue;
     int Battles;
 };

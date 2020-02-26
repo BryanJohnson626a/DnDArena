@@ -8,6 +8,7 @@
 
 enum Stat
 {
+    None,
     Strength,
     Dexterity,
     Constitution,
@@ -29,6 +30,8 @@ class Arena;
 class Group;
 class Actor;
 class Action;
+class Effect;
+class Die;
 
 using Groups = std::vector<Group>;
-using ActorQueue = std::vector<Actor *>;
+using ActorPtrs = std::vector<Actor *>;

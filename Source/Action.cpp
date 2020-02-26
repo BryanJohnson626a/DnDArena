@@ -6,6 +6,7 @@
 #include <utility>
 #include "Action.h"
 #include "Dice.h"
+#include "Effect.h"
 #include "Actor.h"
 #include "Arena.h"
 #include "Output.h"
@@ -14,40 +15,37 @@
 std::map<std::string, Action *> Action::ActionMap;
 WeaponAttack UnarmedStrike("Unarmed Strike", Stat::Strength, 1, 1);
 
-
-bool WeaponAttack::operator()(Actor & user, Arena & arena) const
+ActorPtrs Action::ChooseTargets(Actor & user) const
 {
-    Actor & target = arena.OtherGroup(user.Team).FirstConscious();
-    if (!target.Alive())
+    ActorPtrs targets;
+    if (Target == "Self")
+        targets.push_back(&user);
+    else if (Target == "SelfInjured" && user.IsInjured())
+        targets.push_back(&user);
+    else if (Target == "Enemy")
+    {
+        Actor & target = user.CurrentArena.OtherGroup(user.Team).FirstConscious();
+        if (target.Alive())
+            targets.push_back(&target);
+    }
+    return targets;
+}
+
+bool WeaponAttack::operator()(Actor & user) const
+{
+    ActorPtrs targets = ChooseTargets(user);
+
+    if (targets.empty())
         return false;
 
-    int mod = 0;
-    switch (KeyAttribute)
-    {
-        case Strength:
-            mod += user.Stats.STR;
-            break;
-        case Dexterity:
-            mod += user.Stats.DEX;
-            break;
-        case Constitution:
-            mod += user.Stats.CON;
-            break;
-        case Intelligence:
-            mod += user.Stats.INT;
-            break;
-        case Wisdom:
-            mod += user.Stats.WIS;
-            break;
-        case Charisma:
-            mod += user.Stats.CHA;
-            break;
-    }
+    Actor & target = *targets[0];
+
+    int mod = user.GetStatMod(KeyAttribute);
 
     if (Out(AllActions)) Out.O() << "    " << user.Name << " attacks " << target << " with " << Name << ". ";
 
     int attack_mod = mod + target.Stats.Proficiency + target.Stats.AttackBonus;
-    int roll = D20();
+    int roll = D20.Roll();
 
     if (Out(AllActions))
         Out.O() << "Rolled " << roll << "->" << roll + attack_mod << " vs " << target.Stats.AC << " AC ";
@@ -60,9 +58,8 @@ bool WeaponAttack::operator()(Actor & user, Arena & arena) const
         target.InfoStats.AttacksReceived++;
         user.InfoStats.AttacksLanded++;
 
-        int damage = mod + user.Stats.DamageBonus;
-        for (int i = 0; i < DamageDiceNum * 2; ++i)
-            damage += Roll(DamageDie);
+        int damage = mod + user.Stats.DamageBonus + DamageDie->Roll(DamageDiceNum * 2);
+
         if (Out(AllActions)) Out.O() << "critical hit dealing " << damage << " damage!" << std::endl;
 
         target.TakeDamage(damage);
@@ -74,9 +71,8 @@ bool WeaponAttack::operator()(Actor & user, Arena & arena) const
         // hit
         target.InfoStats.AttacksReceived++;
         user.InfoStats.AttacksLanded++;
-        int damage = mod + user.Stats.DamageBonus;
-        for (int i = 0; i < DamageDiceNum; ++i)
-            damage += Roll(DamageDie);
+
+        int damage = mod + user.Stats.DamageBonus + DamageDie->Roll(DamageDiceNum);
 
         if (Out(AllActions)) Out.O() << "dealing " << damage << " damage." << std::endl;
 
@@ -104,7 +100,7 @@ Action::Action(std::string name) : Name(std::move(name))
     ActionMap.insert({Name, this});
 }
 
-Action * Action::Get(std::string name)
+Action * Action::Get(const std::string & name)
 {
     auto iter = ActionMap.find(name);
     if (iter == ActionMap.end())
@@ -122,9 +118,36 @@ Action * Action::Get(std::string name)
         return iter->second;
 }
 
-bool MultiAction::operator()(Actor & user, Arena & arena) const
+bool MultiAction::operator()(Actor & user) const
 {
+    bool used_action = false;
     for (Action * action : Actions)
-        (*action)(user, arena);
+        if ((*action)(user))
+            used_action = true;
+
+    return used_action;
+}
+
+bool SpecialAction::operator()(Actor & user) const
+{
+    ActorPtrs targets = ChooseTargets(user);
+
+    if (targets.empty())
+        return false;
+
+    if (Out(AllActions) && (Target == "Self" || Target == "SelfInjured"))
+        Out.O() << "    " << user.Name << " uses " << Name << "." << std::endl;
+    else if (Out(AllActions) && Target == "Enemy")
+        Out.O() << "    " << user.Name << " uses " << Name << " on " << targets[0] << "." << std::endl;
+
+    for (Effect * e : Effects)
+        (*e)(user, targets);
+
     return true;
+}
+
+SpecialAction::~SpecialAction()
+{
+    for (Effect * e : Effects)
+        delete e;
 }

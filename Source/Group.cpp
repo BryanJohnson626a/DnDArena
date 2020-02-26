@@ -6,7 +6,8 @@
 #include "Group.h"
 #include "Actor.h"
 
-Group::Group(std::string name, int team) : Name(name), Team(team), Wins(0)
+Group::Group(std::string name, int team, Arena & arena) :
+Name(name), Team(team), Wins(0), CurrentArena(arena)
 {}
 
 void Group::ClearStats()
@@ -20,7 +21,7 @@ void Group::ClearStats()
 int Group::AddActor(std::string name, const StatBlock & actor)
 {
     int index = Members.size();
-    Members.emplace_back(Actor(name, actor, Team));
+    Members.emplace_back(Actor(name, actor, Team, CurrentArena));
     return index;
 }
 

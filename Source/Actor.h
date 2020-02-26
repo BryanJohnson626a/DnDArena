@@ -10,6 +10,7 @@
 #include "Types.h"
 
 class Action;
+
 class Die;
 
 struct ActionInstance
@@ -51,7 +52,6 @@ struct StatBlock
             SaveINT, SaveWIS, SaveCHA;
 
     // Derived stats
-
 
     // Stat Modifier
     int STR, DEX, CON, INT, WIS, CHA;
@@ -98,22 +98,37 @@ public:
         int Uses;
     };
 
-    Actor(std::string name, const StatBlock & stat_block, int team);
+    Actor(std::string name, const StatBlock & stat_block, int team, Arena & arena);
 
     void Initialize();
+
     void ResetInfo();
-    void DoRound(Arena & arena);
-    void TakeAction(Arena & arena);
-    void TakeBonusAction(Arena & arena);
+
+    void DoRound();
+
+    void TakeAction();
+
+    void TakeBonusAction();
+
     void TakeDamage(int damage);
+
     void DeathSave();
 
     [[nodiscard]] int ChooseAction(const std::vector<ActionRep> & actions) const;
+
     [[nodiscard]] DeathState GetDeathState() const;
+
     [[nodiscard]] bool Alive() const;
+
     [[nodiscard]] bool Conscious() const;
+
     [[nodiscard]] int CurrentHP() const;
+
+    [[nodiscard]] bool IsInjured() const;
+
     [[nodiscard]] const Statistics & Info();
+
+    [[nodiscard]] int GetStatMod(enum Stat stat) const;
 
     std::string Name;
     const StatBlock & Stats;
@@ -123,6 +138,15 @@ public:
     std::vector<ActionRep> BonusActionQueue;
     int SuccessfulDeathSaves, FailedDeathSaves;
     Statistics InfoStats;
+    Arena & CurrentArena;
+
+    /**
+     * Retores health to the actor, limited by max HP.
+     * @param amount How much to heal by.
+     * @return The actual amount healed.
+     */
+    int Heal(int amount);
+
 private:
     int HP, MaxHP;
     DeathState State;

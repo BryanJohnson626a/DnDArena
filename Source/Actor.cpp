@@ -36,7 +36,7 @@ void StatBlock::CalculateDerivedStats()
 
 void Actor::Initialize()
 {
-    Initiative = D20() + Stats.DEX + Stats.InitiativeBonus;
+    Initiative = D20.Roll() + Stats.DEX + Stats.InitiativeBonus;
 
     SuccessfulDeathSaves = 0;
     FailedDeathSaves = 0;
@@ -44,7 +44,7 @@ void Actor::Initialize()
 
     MaxHP = 0;
     for (int i = 0; i < Stats.HDNum; ++i)
-        MaxHP += (*Stats.HD)() + Stats.CON;
+        MaxHP += Stats.HD->Roll() + Stats.CON;
 
     HP = MaxHP;
 
@@ -61,8 +61,8 @@ void Actor::FillActionQueues()
         BonusActionQueue.push_back(ActionRep{weighted_action.Action, weighted_action.Uses});
 }
 
-Actor::Actor(std::string name, const StatBlock & stat_block, int team) :
-        Stats(stat_block), Team(team), Name(name)
+Actor::Actor(std::string name, const StatBlock & stat_block, int team, Arena & arena) :
+        Stats(stat_block), Team(team), Name(name), CurrentArena(arena)
 {
     FillActionQueues();
     Initialize();
@@ -89,35 +89,35 @@ bool Actor::Conscious() const
     return State == DeathState::Conscious;
 }
 
-void Actor::DoRound(Arena & arena)
+void Actor::DoRound()
 {
     if (Conscious())
     {
-        TakeAction(arena);
-        TakeBonusAction(arena);
+        TakeAction();
+        TakeBonusAction();
     }
     else if (Alive())
         DeathSave();
 }
 
-void Actor::TakeAction(Arena & arena)
+void Actor::TakeAction()
 {
     int action_index = ChooseAction(ActionQueue);
     if (action_index != -1)
     {
-        bool used = (*ActionQueue[action_index].Action)(*this, arena);
+        bool used = (*ActionQueue[action_index].Action)(*this);
         if (used)
             --ActionQueue[action_index].Uses;
     }
 }
 
-void Actor::TakeBonusAction(Arena & arena)
+void Actor::TakeBonusAction()
 {
 
     int action_index = ChooseAction(BonusActionQueue);
     if (action_index != -1)
     {
-        bool used = (*BonusActionQueue[action_index].Action)(*this, arena);
+        bool used = (*BonusActionQueue[action_index].Action)(*this);
         if (used)
             --BonusActionQueue[action_index].Uses;
     }
@@ -161,7 +161,7 @@ void Actor::DeathSave()
 {
     if (SuccessfulDeathSaves < 3 && FailedDeathSaves < 3)
     {
-        int roll = D20();
+        int roll = D20.Roll();
         if (Out(AllActions)) Out.O() << "    " << Name << " makes a death saving throw: " << roll;
         if (roll == 20)
         {
@@ -213,4 +213,31 @@ void Actor::DeathCheck()
 DeathState Actor::GetDeathState() const
 {
     return State;
+}
+
+int Actor::GetStatMod(enum Stat stat) const
+{
+    switch (stat)
+    {
+        default: return 0;
+        case Strength: return Stats.STR;
+        case Dexterity: return Stats.DEX;
+        case Constitution: return Stats.CON;
+        case Intelligence: return Stats.INT;
+        case Wisdom: return Stats.WIS;
+        case Charisma: return Stats.CHA;
+    }
+}
+
+int Actor::Heal(int amount)
+{
+    if (amount + HP > MaxHP)
+        amount = MaxHP - HP;
+    HP += amount;
+    return amount;
+}
+
+bool Actor::IsInjured() const
+{
+    return HP < MaxHP;
 }

@@ -11,17 +11,19 @@
 // 0: No output.
 // Errors: Vital errors
 // Warnings: Non-vital errors.
+// Info: System status messages.
 // Results: Final results after all trials.
 // TrialResults: Results of each trial.
 // AllActions: Detailed breakdown of each trial.
 enum OL
 {
-    None = 0,
-    Errors = 1,
-    Warnings = 2,
-    Results = 3,
-    TrialResults = 4,
-    AllActions = 5
+    NoOutput,
+    Errors,
+    Warnings,
+    Info,
+    Results,
+    TrialResults,
+    AllActions
 };
 
 // Change this to have compiler automatically remove some or all debug code.
@@ -31,7 +33,7 @@ class Output
 {
 public:
 
-    explicit Output(std::ostream & out_stream = std::cout, enum OL level = None);
+    explicit Output(std::ostream & out_stream = std::cout, enum OL level = NoOutput);
 
     //void operator()(enum OutputLevel level, const char * message, ...);
     bool operator()(enum OL level) const;
@@ -44,7 +46,7 @@ public:
 
 extern Output Out;
 
-std::ostream & operator<<(std::ostream & out, const ActorQueue & actors);
+std::ostream & operator<<(std::ostream & out, const ActorPtrs & actors);
 
 std::ostream & operator<<(std::ostream & out, const Arena & arena);
 

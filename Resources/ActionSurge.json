@@ -1,4 +1,12 @@
 {
   "Type": "Special",
-  "Name": "ActionSurge"
+  "Name": "Action Surge",
+  "Target":"Self",
+  "Effects": [
+    {
+    "Type": "ImmediateExtraActions",
+    "ExtraActions": 1,
+    "ExtraBonusActions": 0
+    }
+  ]
 } 

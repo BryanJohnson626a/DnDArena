@@ -1,0 +1,15 @@
+{
+  "Type": "Special",
+  "Name": "Second Wind",
+  "Target":"SelfInjured",
+  "Effects": [
+    {
+      "Type": "Healing",
+      "HealingDieNum": 1,
+      "HealingDieSize": 10,
+      "HealingBonus": 0,
+      "KeyAttribute": "None",
+      "AddLevelMod": 1
+    }
+  ]
+} 

@@ -58,7 +58,7 @@ int Arena::DoBattle()
 void Arena::DoRound()
 {
     for (auto actor : InitiativeQueue)
-        actor->DoRound(*this);
+        actor->DoRound();
 }
 
 void Arena::Initialize()
@@ -87,7 +87,7 @@ int Arena::AddCombatant(std::string name, const StatBlock & stats, int team)
 int Arena::AddTeam(std::string name)
 {
     int team = Combatants.size();
-    Combatants.emplace_back(Group(name, team));
+    Combatants.emplace_back(Group(name, team, *this));
     return team;
 }
 

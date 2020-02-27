@@ -1,5 +1,0 @@
-/home/bryan/Programs/clion-2019.3.4/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=/usr/bin/clang-9 -DCMAKE_CXX_COMPILER=/usr/bin/clang++-9 -G "CodeBlocks - Unix Makefiles" /home/bryan/Documents/Projects/dndmontecarloarena
--- Using the single-header code from /home/bryan/Documents/Projects/dndmontecarloarena/cmake-build-debug/_deps/nlohmann_json_dl-src/single_include/
--- Configuring done
--- Generating done
--- Build files have been written to: /home/bryan/Documents/Projects/dndmontecarloarena/cmake-build-debug

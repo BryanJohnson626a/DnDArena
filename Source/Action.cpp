@@ -12,8 +12,7 @@
 #include "Output.h"
 #include "ImportJson.h"
 
-std::map<std::string, Action *> Action::ActionMap;
-WeaponAttack UnarmedStrike("Unarmed Strike", Stat::Strength, 1, 1);
+std::map<std::string, std::weak_ptr<const Action>> Action::ActionMap;
 
 ActorPtrs Action::ChooseTargets(Actor & user) const
 {
@@ -39,18 +38,20 @@ bool WeaponAttack::operator()(Actor & user) const
         return false;
 
     Actor & target = *targets[0];
-
-    int mod = user.GetStatMod(KeyAttribute);
-
     if (Out(AllActions)) Out.O() << "    " << user.Name << " attacks " << target << " with " << Name << ". ";
 
-    int attack_mod = mod + target.Stats.Proficiency + target.Stats.AttackBonus;
+    int stat_mod = user.GetStatMod(KeyAttribute);
+    int attack_mod = stat_mod + target.Stats->Proficiency + target.Stats->AttackBonus;
     int roll = D20.Roll();
 
-    if (Out(AllActions))
-        Out.O() << "Rolled " << roll << "->" << roll + attack_mod << " vs " << target.Stats.AC << " AC ";
+    // Advantage if target is not conscious.
+    if (!target.Conscious())
+        roll = std::max(roll, D20.Roll());
 
-    if (roll >= user.Stats.Crit && roll + attack_mod > target.Stats.AC)
+    if (Out(AllActions))
+        Out.O() << "Rolled " << roll << "->" << roll + attack_mod << " vs " << target.Stats->AC << " AC ";
+
+    if (roll >= user.Stats->Crit && roll + attack_mod >= target.Stats->AC)
     {
         // crit
         target.InfoStats.CritsReceived++;
@@ -58,25 +59,25 @@ bool WeaponAttack::operator()(Actor & user) const
         target.InfoStats.AttacksReceived++;
         user.InfoStats.AttacksLanded++;
 
-        int damage = mod + user.Stats.DamageBonus + DamageDie->Roll(DamageDiceNum * 2);
+        int damage = stat_mod + user.GetDamageBonus() + DamageDie->Roll(DamageDiceNum * 2);
+        if (Out(AllActions))
+            Out.O() << "critical hit dealing " << (target.HasResistance() ? damage / 2 : damage) << " damage!"
+                                                                                               << std::endl;
 
-        if (Out(AllActions)) Out.O() << "critical hit dealing " << damage << " damage!" << std::endl;
-
-        target.TakeDamage(damage);
+        damage = target.TakeDamage(damage);
         user.InfoStats.DamageDone += damage;
         if (!target.Alive()) ++user.InfoStats.Kills;
     }
-    else if ((roll + attack_mod > target.Stats.AC || roll == 20) && roll != 1)
+    else if ((roll + attack_mod >= target.Stats->AC || roll == 20) && roll != 1)
     {
         // hit
         target.InfoStats.AttacksReceived++;
         user.InfoStats.AttacksLanded++;
 
-        int damage = mod + user.Stats.DamageBonus + DamageDie->Roll(DamageDiceNum);
+        int damage = stat_mod + user.GetDamageBonus() + DamageDie->Roll(DamageDiceNum);
+        if (Out(AllActions)) Out.O() << "dealing " << (target.HasResistance() ? damage / 2 : damage) << " damage." << std::endl;
 
-        if (Out(AllActions)) Out.O() << "dealing " << damage << " damage." << std::endl;
-
-        target.TakeDamage(damage);
+        damage = target.TakeDamage(damage);
         user.InfoStats.DamageDone += damage;
         if (!target.Alive()) ++user.InfoStats.Kills;
     }
@@ -96,32 +97,30 @@ WeaponAttack::WeaponAttack(std::string name, Stat key_attribute, int number_of_d
 {}
 
 Action::Action(std::string name) : Name(std::move(name))
-{
-    ActionMap.insert({Name, this});
-}
+{}
 
-Action * Action::Get(const std::string & name)
+std::shared_ptr<const Action> Action::Get(const std::string & name)
 {
     auto iter = ActionMap.find(name);
-    if (iter == ActionMap.end())
+    if (iter == ActionMap.end() || iter->second.expired())
     {
-        Action * new_action = ParseAction(name);
+        std::shared_ptr<const Action> new_action(ParseAction(name));
         if (new_action == nullptr)
             return nullptr;
         else
         {
-            ActionMap.insert({name, new_action});
+            ActionMap[name] = new_action;
             return new_action;
         }
     }
     else
-        return iter->second;
+        return iter->second.lock();
 }
 
 bool MultiAction::operator()(Actor & user) const
 {
     bool used_action = false;
-    for (Action * action : Actions)
+    for (const std::shared_ptr<const Action> & action : Actions)
         if ((*action)(user))
             used_action = true;
 

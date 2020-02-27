@@ -1,0 +1,8 @@
+{
+  "Type": "WeaponAttack",
+  "Name": "Greatsword",
+  "Target":"Enemy",
+  "KeyAttribute": "Strength",
+  "DamageDiceNum": 2,
+  "DamageDiceSize": 6
+} 

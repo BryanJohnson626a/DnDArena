@@ -6,6 +6,8 @@
 
 #include <vector>
 #include <string>
+#include <map>
+#include <memory>
 
 #include "Types.h"
 
@@ -15,7 +17,7 @@ class Die;
 
 struct ActionInstance
 {
-    const Action * Action;
+    std::shared_ptr<const Action> Action;
     int Uses;
 };
 
@@ -24,6 +26,7 @@ struct ActionInstance
  */
 struct StatBlock
 {
+
     void CalculateDerivedStats();
 
     std::string Name;
@@ -67,6 +70,11 @@ struct StatBlock
     float ActionsTotalWeight;
     std::vector<ActionInstance> BonusActions;
     float BonusActionsTotalWeight;
+
+
+    static std::shared_ptr<const StatBlock> Get(const std::string_view & name);
+
+    static std::map<std::string_view, std::weak_ptr<const StatBlock>> StatBlockMap;
 };
 
 /**
@@ -94,11 +102,16 @@ public:
     };
     struct ActionRep
     {
-        const Action * Action;
+        std::shared_ptr<const Action> Action;
         int Uses;
     };
+    struct EffectRep
+    {
+        const OngoingEffect * effect;
+        int duration_remaining;
+    };
 
-    Actor(std::string name, const StatBlock & stat_block, int team, Arena & arena);
+    Actor(std::string_view name, std::shared_ptr<const StatBlock> stat_block, int team, Arena & arena);
 
     void Initialize();
 
@@ -110,7 +123,7 @@ public:
 
     void TakeBonusAction();
 
-    void TakeDamage(int damage);
+    int TakeDamage(int damage);
 
     void DeathSave();
 
@@ -130,8 +143,14 @@ public:
 
     [[nodiscard]] int GetStatMod(enum Stat stat) const;
 
+    [[nodiscard]] int GetDamageBonus() const;
+
+    [[nodiscard]] bool HasResistance() const;
+
+    void AddEffect(const OngoingEffect * effect);
+
     std::string Name;
-    const StatBlock & Stats;
+    std::shared_ptr<const StatBlock> Stats;
     int Initiative;
     int Team;
     std::vector<ActionRep> ActionQueue;
@@ -147,7 +166,11 @@ public:
      */
     int Heal(int amount);
 
+    int TempDamageBonus = 0;
+    int TempResistance = 0;
+
 private:
+    std::vector<EffectRep> OngoingEffects;
     int HP, MaxHP;
     DeathState State;
 

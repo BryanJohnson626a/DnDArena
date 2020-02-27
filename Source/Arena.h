@@ -20,12 +20,12 @@ public:
 
 /**
  * Adds a combatant to a team.
- * @param Stats
+ * @param stat_block
  * @param team The team to place the Stats on.
  * @return The index of the new combatant in it's team,
  * or -1 if the team doesn't exist.
  */
-    int AddCombatant(std::string Name, const StatBlock & Stats, int team);
+    int AddCombatant(std::string_view name, std::string_view stat_block, int team);
 
 /**
  *  Reset saved statistics for arena and all combatants.

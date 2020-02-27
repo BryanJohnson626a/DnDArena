@@ -8,7 +8,10 @@
 #include "Action.h"
 #include "Dice.h"
 #include "Output.h"
+#include "ImportJson.h"
+#include "Effect.h"
 
+std::map<std::string_view, std::weak_ptr<const StatBlock>> StatBlock::StatBlockMap;
 
 void StatBlock::CalculateDerivedStats()
 {
@@ -31,20 +34,20 @@ void StatBlock::CalculateDerivedStats()
     WISSaveMod = WIS + (SaveWIS ? Proficiency : 0);
     CHASaveMod = CHA + (SaveCHA ? Proficiency : 0);
 
-    Actions.emplace_back(ActionInstance{&UnarmedStrike, -1});
+    Actions.emplace_back(ActionInstance{Action::Get("UnarmedStrike"), -1});
 }
 
 void Actor::Initialize()
 {
-    Initiative = D20.Roll() + Stats.DEX + Stats.InitiativeBonus;
+    Initiative = D20.Roll() + Stats->DEX + Stats->InitiativeBonus;
 
     SuccessfulDeathSaves = 0;
     FailedDeathSaves = 0;
     State = DeathState::Conscious;
 
     MaxHP = 0;
-    for (int i = 0; i < Stats.HDNum; ++i)
-        MaxHP += Stats.HD->Roll() + Stats.CON;
+    for (int i = 0; i < Stats->HDNum; ++i)
+        MaxHP += Stats->HD->Roll() + Stats->CON;
 
     HP = MaxHP;
 
@@ -53,16 +56,16 @@ void Actor::Initialize()
 void Actor::FillActionQueues()
 {
     ActionQueue.clear();
-    for (const ActionInstance & weighted_action : Stats.Actions)
+    for (const ActionInstance & weighted_action : Stats->Actions)
         ActionQueue.push_back(ActionRep{weighted_action.Action, weighted_action.Uses});
 
     BonusActionQueue.clear();
-    for (const ActionInstance & weighted_action : Stats.BonusActions)
+    for (const ActionInstance & weighted_action : Stats->BonusActions)
         BonusActionQueue.push_back(ActionRep{weighted_action.Action, weighted_action.Uses});
 }
 
-Actor::Actor(std::string name, const StatBlock & stat_block, int team, Arena & arena) :
-        Stats(stat_block), Team(team), Name(name), CurrentArena(arena)
+Actor::Actor(std::string_view name, std::shared_ptr<const StatBlock> stat_block, int team, Arena & arena) :
+        Stats(stat_block), Team(team), Name(name.data()), CurrentArena(arena)
 {
     FillActionQueues();
     Initialize();
@@ -93,8 +96,8 @@ void Actor::DoRound()
 {
     if (Conscious())
     {
-        TakeAction();
         TakeBonusAction();
+        TakeAction();
     }
     else if (Alive())
         DeathSave();
@@ -132,8 +135,11 @@ int Actor::ChooseAction(const std::vector<ActionRep> & actions) const
     return -1;
 }
 
-void Actor::TakeDamage(int damage)
+int Actor::TakeDamage(int damage)
 {
+    if (HasResistance())
+        damage /= 2;
+
     if (HP <= 0)
     {
         FailedDeathSaves += 2;
@@ -150,6 +156,7 @@ void Actor::TakeDamage(int damage)
             if (Out(AllActions)) Out.O() << "        " << Name << " has fallen!" << std::endl;
         }
     }
+    return damage;
 }
 
 int Actor::CurrentHP() const
@@ -220,12 +227,12 @@ int Actor::GetStatMod(enum Stat stat) const
     switch (stat)
     {
         default: return 0;
-        case Strength: return Stats.STR;
-        case Dexterity: return Stats.DEX;
-        case Constitution: return Stats.CON;
-        case Intelligence: return Stats.INT;
-        case Wisdom: return Stats.WIS;
-        case Charisma: return Stats.CHA;
+        case Strength: return Stats->STR;
+        case Dexterity: return Stats->DEX;
+        case Constitution: return Stats->CON;
+        case Intelligence: return Stats->INT;
+        case Wisdom: return Stats->WIS;
+        case Charisma: return Stats->CHA;
     }
 }
 
@@ -240,4 +247,37 @@ int Actor::Heal(int amount)
 bool Actor::IsInjured() const
 {
     return HP < MaxHP;
+}
+
+void Actor::AddEffect(const OngoingEffect * effect)
+{
+    OngoingEffects.emplace_back(EffectRep{effect, effect->Duration});
+}
+
+int Actor::GetDamageBonus() const
+{
+    return TempDamageBonus + Stats->DamageBonus;
+}
+
+bool Actor::HasResistance() const
+{
+    return TempResistance > 0;
+}
+
+std::shared_ptr<const StatBlock> StatBlock::Get(const std::string_view & name)
+{
+    auto iter = StatBlockMap.find(name.data());
+    if (iter == StatBlockMap.end() || iter->second.expired())
+    {
+        std::shared_ptr<StatBlock> new_stat_block(ParseStatBlock(name));
+        if (new_stat_block == nullptr)
+            return nullptr;
+        else
+        {
+            StatBlockMap[name] = new_stat_block;
+            return new_stat_block;
+        }
+    }
+    else
+        return iter->second.lock();
 }

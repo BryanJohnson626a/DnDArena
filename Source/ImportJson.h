@@ -10,7 +10,7 @@
 
 StatBlock * ParseStatBlock(std::string_view file_name);
 
-Action * ParseAction(std::string_view file_name);
+const Action * ParseAction(std::string_view file_name);
 
 void to_json(nlohmann::json & js, const StatBlock & stat_block);
 

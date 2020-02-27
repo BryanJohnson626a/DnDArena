@@ -31,6 +31,7 @@ class Group;
 class Actor;
 class Action;
 class Effect;
+class OngoingEffect;
 class Die;
 
 using Groups = std::vector<Group>;

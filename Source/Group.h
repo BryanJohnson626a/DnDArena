@@ -20,7 +20,7 @@ public:
 
     void ClearStats();
 
-    int AddActor(std::string name, const StatBlock & actor);
+    int AddActor(std::string_view name, std::shared_ptr<const StatBlock> stat_block);
 
     int MembersAlive() const;
 

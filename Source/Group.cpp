@@ -18,10 +18,10 @@ void Group::ClearStats()
 }
 
 
-int Group::AddActor(std::string name, const StatBlock & actor)
+int Group::AddActor(std::string_view name, std::shared_ptr<const StatBlock> stat_block)
 {
     int index = Members.size();
-    Members.emplace_back(Actor(name, actor, Team, CurrentArena));
+    Members.emplace_back(Actor(name, stat_block, Team, CurrentArena));
     return index;
 }
 

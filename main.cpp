@@ -5,26 +5,22 @@
 #include <iostream>
 
 #include "Source/Arena.h"
-#include "Source/ImportJson.h"
 #include "Source/Output.h"
 
 int main()
 {
     Out.Level = AllActions;
-    StatBlock * Fighter = ParseStatBlock("Fighter5");
-    if (Fighter == nullptr)
-        return 0;
 
-    auto * BG = new Arena();
+    Arena BG;
+    BG.AddTeam("Team A");
+    BG.AddCombatant("Alice", "Fighter5", 0);
 
-    BG->AddTeam("Team A");
-    BG->AddTeam("Team B");
-    BG->AddCombatant("Alice", *Fighter, 0);
-    BG->AddCombatant("Bob", *Fighter, 1);
+    BG.AddTeam("Team B");
+    BG.AddCombatant("Bob", "Barbarian5", 1);
 
-    BG->Initialize();
+    BG.Initialize();
 
-    BG->DoBattles(1);
+    BG.DoBattles(1);
 
     return 0;
 }

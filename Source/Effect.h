@@ -34,3 +34,29 @@ public:
     int ExtraBonusActions;
 };
 
+class OngoingEffect : public Effect
+{
+public:
+    // Undoes whatever modifiers the effect granted.
+    virtual void End(Actor * target) const = 0;
+
+    // How many rounds the effect lasts.
+    int Duration;
+};
+
+class OngoingDamageBonus : public OngoingEffect
+{
+public:
+    void operator()(Actor & user, std::vector<Actor*> & targets) const override ;
+    void End(Actor * target) const override ;
+
+    int BonusDamage;
+};
+
+class OngoingResistance : public OngoingEffect
+{
+public:
+    void operator()(Actor & user, std::vector<Actor*> & targets) const override ;
+    void End(Actor * target) const override ;
+};
+

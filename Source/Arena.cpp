@@ -21,7 +21,7 @@ void Arena::DoBattles(int trials)
     if (Out(Results))
         for (Group & group : Combatants)
             Out.O() << group.Name << " won " << group.Wins <<
-                    " times (" << float(group.Wins) / float(trials) << "%)." << std::endl;
+                    " times (" << 100 * float(group.Wins) / float(trials) << "%)." << std::endl;
 }
 
 int Arena::DoBattle()
@@ -74,9 +74,11 @@ void Arena::Initialize()
             InitiativeQueue.push_back(&actor);
 }
 
-int Arena::AddCombatant(std::string name, const StatBlock & stats, int team)
+int Arena::AddCombatant(std::string_view name, std::string_view stat_block, int team)
 {
-    if (Combatants.size() <= team)
+    auto stats = StatBlock::Get(stat_block);
+
+    if (Combatants.size() <= team || stats == nullptr)
         return -1;
 
     int index = Combatants[team].AddActor(name, stats);

@@ -1,0 +1,33 @@
+{
+  "Name": "Barbarian 5",
+  "Type": "Humanoid",
+  "HDNum": 5,
+  "HDSize": 12,
+  "Proficiency": 3,
+  "InitiativeBonus": 0,
+  "ArmorValue": 3,
+  "ShieldValue": 0,
+  "AttackBonus": 0,
+  "DamageBonus": 0,
+  "Strength": 17,
+  "Dexterity": 14,
+  "Constitution": 16,
+  "Intelligence": 9,
+  "Wisdom": 13,
+  "Charisma": 11,
+  "SaveSTR": true,
+  "SaveDEX": false,
+  "SaveCON": true,
+  "SaveINT": false,
+  "SaveWIS": false,
+  "SaveCHA": false,
+  "Crit": 20,
+  "Actions": [
+    {"Action": {"Name": "GreatswordMultiAttack"}, "Uses":-1},
+    {"Action": {"Name": "Greatsword"}, "Uses":-1}
+  ],
+  "BonusActions": [
+    {"Action": {"Name": "Rage"}, "Uses":1},
+    {"Action":{"Name":"Frenzy"}, "Uses":2}
+    ]
+} 

@@ -6,6 +6,7 @@
 
 #include <string>
 #include <map>
+#include <memory>
 
 #include "Types.h"
 
@@ -29,9 +30,9 @@ public:
     std::string Name;
     std::string Target;
 
-    static Action * Get(const std::string & name);
+    static std::shared_ptr<const Action> Get(const std::string & name);
 
-    static std::map<std::string, Action *> ActionMap;
+    static std::map<std::string, std::weak_ptr<const Action>> ActionMap;
 
     ActorPtrs ChooseTargets(Actor & user) const;
 };
@@ -59,7 +60,7 @@ public:
 
     bool operator()(Actor & user) const override;
 
-    std::vector<Action *> Actions;
+    std::vector<std::shared_ptr<const Action>> Actions;
 };
 
 class SpecialAction : public Action

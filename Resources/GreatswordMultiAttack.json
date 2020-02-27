@@ -1,0 +1,9 @@
+{
+  "Type": "MultiAction",
+  "Name": "MultiAttack",
+  "Target":"Enemy",
+  "Actions": [
+      {"Name": "Greatsword"},
+      {"Name": "Greatsword"}
+  ]
+} 

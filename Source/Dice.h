@@ -15,7 +15,7 @@ public:
      * Creates a die that rolls between 1 and high.
      * @param high The highest result possible.
      */
-    Die(unsigned high);
+    explicit Die(unsigned high);
 
     /**
      * Creates a die that rolls between two values.
@@ -31,6 +31,12 @@ public:
     static void SetSeed(unsigned seed);
 
     /**
+     * Roll the die once.
+     * @return The result of the die roll.
+     */
+    int Roll();
+
+    /**
      * Roll the die multiple times.
      * @param times How many times to roll.
      * @return The total of all dice rolled.
@@ -38,15 +44,22 @@ public:
     int Roll(int times);
 
     /**
-     * Roll the die once.
-     * @return The result of the die roll.
+     * Roll the die multiple times and keep only some.
+     * @param times How many times to roll.
+     * @param keep How many dice to keep at the end.
+     * @param low If true, keeps the lowest dice instead of the highest.
+     * @return The total of all dice rolled that were kept.
      */
-    int Roll();
+    int Roll(int times, int keep, bool low = false);
+
+    int RollMod(int bonus, int times = 1, int keep = 0, bool low = false);
 
     static Die * Get(int size);
 
     const int Low, High;
 
+    // When true, dice output their results
+    static bool dice_output;
 private:
     static RNG generator;
     std::uniform_int_distribution<int> roller;

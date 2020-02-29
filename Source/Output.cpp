@@ -8,19 +8,37 @@
 #include "Arena.h"
 #include "Group.h"
 
-Output Out = Output();
-
-Output::Output(std::ostream & out_stream, enum OL level) : OutStream(&out_stream), Level(level)
+Output::Output(std::ostream & out_stream, enum MessageLevel level) : MessageStream(&out_stream), Level(level)
 {}
 
-bool Output::operator()(enum OL level) const
+bool Output::CheckLevel(enum MessageLevel level) const
 {
     return (level <= MAX_OUTPUT_LEVEL && level <= Level);
 }
 
-std::ostream & Output::O()
+std::ostream & Output::GetStream()
 {
-    return *OutStream;
+    return *MessageStream;
+}
+
+bool Output::SetLevel(MessageLevel new_level)
+{
+    if (new_level > MAX_OUTPUT_LEVEL)
+    {
+        Level = MAX_OUTPUT_LEVEL;
+        return false;
+    }
+    else
+    {
+        Level = new_level;
+        return true;
+    }
+}
+
+Output & Output::Out()
+{
+    static Output OutputSingleton = Output();
+    return OutputSingleton;
 }
 
 std::ostream & operator<<(std::ostream & out, const ActorPtrs & actors)
@@ -79,12 +97,12 @@ std::ostream & operator<<(std::ostream & out, const Group & group)
         switch (Member.GetDeathState())
         {
 
-            case Conscious:out << Member << "(" << Member.CurrentHP() << " HP)";
+            case Conscious:out << Member << " (" << Member.CurrentHP() << "/" << Member.MaxHP() << " HP)";
                 break;
             case Stable:out << Member << "(Stable)";
                 break;
             case Dying:
-                out << Member << "(Dying " << Member.SuccessfulDeathSaves << ":" << Member.FailedDeathSaves << ")";
+                out << Member << "(Dying " << Member.SuccessfulDeathSaves << "S:" << Member.FailedDeathSaves << "F)";
                 break;
             case Dead:out << Member << "(Dead)";
                 break;

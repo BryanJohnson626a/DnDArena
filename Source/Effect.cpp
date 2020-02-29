@@ -7,20 +7,23 @@
 #include "Dice.h"
 #include "Output.h"
 
+// Instantaneous Effects ***********************************************************************************************
 
-void EffectHealing::operator()(Actor & user, std::vector<Actor *> & targets) const
+void EffectHealing::DoEffect(Actor & user, std::vector<Actor *> & targets) const
 {
     for (Actor * target : targets)
     {
-        int heal_amount = HealingBonus + user.GetStatMod(KeyAttribute)
-                          + AddLevelMod * user.Stats->HDNum
-                          + HealingDie->Roll(HealingDieNum);
-        heal_amount = target->Heal(heal_amount);
-        if (Out(AllActions)) Out.O() << "        " << user.Name << " recovers " << heal_amount << " HP." << std::endl;
+        OUT_ALL << "        " << user.Name << " recovers ";
+        int mod = HealingBonus + user.GetStatMod(KeyAttribute) + int(AddLevelMod * float(user.Stats->HDNum));
+        int roll = HealingDie->RollMod(mod, HealingDieNum);
+        OUT_ALL << " HP.";
+        int heal_amount = target->Heal(mod + roll);
+        if (heal_amount != mod + roll) OUT_ALL << " Reduced to " << heal_amount << ".";
+        OUT_ALL << std::endl;
     }
 }
 
-void EffectImmediateExtraActions::operator()(Actor & user, std::vector<Actor *> & targets) const
+void EffectExtraActions::DoEffect(Actor & user, std::vector<Actor *> & targets) const
 {
     for (int i = 0; i < ExtraActions; ++i)
         user.TakeAction();
@@ -28,9 +31,11 @@ void EffectImmediateExtraActions::operator()(Actor & user, std::vector<Actor *> 
         user.TakeBonusAction();
 }
 
-void OngoingDamageBonus::operator()(Actor & user, std::vector<Actor *> & targets) const
+// Ongoing Effects *****************************************************************************************************
+
+void OngoingDamageBonus::DoEffect(Actor & user, std::vector<Actor *> & targets) const
 {
-    for(Actor * target : targets)
+    for (Actor * target : targets)
     {
         target->AddEffect(this);
         target->TempDamageBonus += BonusDamage;
@@ -40,18 +45,34 @@ void OngoingDamageBonus::operator()(Actor & user, std::vector<Actor *> & targets
 void OngoingDamageBonus::End(Actor * target) const
 {
     target->TempDamageBonus -= BonusDamage;
+    OUT_ALL << "        " << target->Name << " loses damage bonus of " << BonusDamage;
 }
 
-void OngoingResistance::operator()(Actor & user, std::vector<Actor *> & targets) const
+void OngoingResistance::DoEffect(Actor & user, std::vector<Actor *> & targets) const
 {
-    for(Actor * target : targets)
+    for (Actor * target : targets)
     {
         target->AddEffect(this);
-        target->TempResistance += 1;
+        target->AddResistance(ResistanceType);
     }
 }
 
 void OngoingResistance::End(Actor * target) const
 {
-    target->TempResistance -= 1;
+    OUT_ALL << "        " << target->Name << " loses resistance to " << ResistanceType;
+}
+
+void EffectDamage::DoEffect(Actor & user, std::vector<Actor *> & targets) const
+{
+    for (Actor * target : targets)
+    {
+        OUT_ALL << "        " << target->Name << " takes ";
+        int mod = DamageBonus;
+        int damage = DamageDie->RollMod(mod, DamageDieNum);
+        OUT_ALL << " damage." << std::endl;
+
+        if (damage < 0)
+        OUT_ERROR << "Negative damage dealt." << ERROR_END;
+        target->TakeDamage(damage, DamageType);
+    }
 }

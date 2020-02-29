@@ -13,28 +13,26 @@
 class Action
 {
 public:
-    /**
-     * Function that implements the usage of an Action. Must be implemented.
-     * @param user The Actor using the Action.
-     * @param arena The Arena in which the Action is being used.
-     * @param out The output stream for writing debug info to.
-     * @return True if the Action was used, False if the Action could not be used.
-     */
-    virtual bool operator()(Actor & user) const = 0;
+    virtual bool DoAction(Actor & user, Stat KeyStat) const = 0;
 
     Action() = default;
     virtual ~Action() = default;
 
-    explicit Action(std::string name);
+    static std::shared_ptr<const Action> Get(const std::string & name);
+    ActorPtrs ChooseTargets(Actor & user) const;
 
     std::string Name;
     std::string Target;
 
-    static std::shared_ptr<const Action> Get(const std::string & name);
-
     static std::map<std::string, std::weak_ptr<const Action>> ActionMap;
+    static std::shared_ptr<const Action> GetWeaponAttackProxy();
+};
 
-    ActorPtrs ChooseTargets(Actor & user) const;
+class AttackProxy : public Action
+{
+public:
+    AttackProxy() = default;
+    bool DoAction(Actor & user, Stat KeyStat) const override;
 };
 
 class WeaponAttack : public Action
@@ -42,23 +40,19 @@ class WeaponAttack : public Action
 public:
     WeaponAttack() = default;
 
-    WeaponAttack(std::string name, Stat key_attribute, int number_of_damage_dice, int size_of_damage_dice);
+    bool DoAction(Actor & user, Stat KeyStat) const override;
 
-    virtual bool operator()(Actor & user) const;
-
-    Stat KeyAttribute;
-    int DamageDiceNum;
-    Die * DamageDie;
+    int DamageDiceNum{0};
+    Die * DamageDie{0};
+    DamageType DamageType;
 };
-
-extern WeaponAttack UnarmedStrike;
 
 class MultiAction : public Action
 {
 public:
     MultiAction() = default;
 
-    bool operator()(Actor & user) const override;
+    bool DoAction(Actor & user, Stat KeyStat) const override;
 
     std::vector<std::shared_ptr<const Action>> Actions;
 };
@@ -71,7 +65,23 @@ public:
     // Special actions are responsible for cleaning up their effects.
     ~SpecialAction() override;
 
-    bool operator()(Actor & user) const override;
+    bool DoAction(Actor & user, Stat KeyStat) const override;
 
     std::vector<Effect *> Effects;
+};
+
+class Spell : public Action
+{
+public:
+    Spell() = default;
+
+    // Spells are responsible for cleaning up their effects.
+    ~Spell() override;
+
+    bool DoAction(Actor & user, Stat KeyStat) const override;
+
+    Stat SavingThrow{None};
+    bool SpellAttack{false};
+    std::vector<Effect *> HitEffects;
+    std::vector<Effect *> MissEffects;
 };

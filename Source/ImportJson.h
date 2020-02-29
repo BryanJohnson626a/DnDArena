@@ -8,10 +8,6 @@
 #include <string_view>
 #include "Types.h"
 
-StatBlock * ParseStatBlock(std::string_view file_name);
+StatBlock * ParseStatBlock(std::string_view name);
 
-const Action * ParseAction(std::string_view file_name);
-
-void to_json(nlohmann::json & js, const StatBlock & stat_block);
-
-void from_json(const nlohmann::json & js, StatBlock & stat_block);
+const Action * ParseAction(std::string_view name);

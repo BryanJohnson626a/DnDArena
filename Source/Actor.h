@@ -15,10 +15,14 @@ class Action;
 
 class Die;
 
+// Instance of an action for a Stat Block.
+// Uses and Key Stat can be different for
+// different creatures using the same action.
 struct ActionInstance
 {
     std::shared_ptr<const Action> Action;
     int Uses;
+    Stat KeyStat{None};
 };
 
 /**
@@ -100,10 +104,11 @@ public:
         int SavesDone;
         int SavesMade;
     };
+    // Action representative that tracks active usage.
     struct ActionRep
     {
-        std::shared_ptr<const Action> Action;
-        int Uses;
+        const ActionInstance & Inst;
+        int UsesRemaining;
     };
     struct EffectRep
     {
@@ -123,11 +128,11 @@ public:
 
     void TakeBonusAction();
 
-    int TakeDamage(int damage);
+    int TakeDamage(int damage, DamageType damage_type);
 
     void DeathSave();
 
-    [[nodiscard]] int ChooseAction(const std::vector<ActionRep> & actions) const;
+    [[nodiscard]] ActionRep * ChooseAction(std::vector<ActionRep> & actions) const;
 
     [[nodiscard]] DeathState GetDeathState() const;
 
@@ -137,6 +142,8 @@ public:
 
     [[nodiscard]] int CurrentHP() const;
 
+    [[nodiscard]] int MaxHP() const;
+
     [[nodiscard]] bool IsInjured() const;
 
     [[nodiscard]] const Statistics & Info();
@@ -145,34 +152,38 @@ public:
 
     [[nodiscard]] int GetDamageBonus() const;
 
-    [[nodiscard]] bool HasResistance() const;
+    [[nodiscard]] bool HasResistance(DamageType damage_type) const;
 
-    void AddEffect(const OngoingEffect * effect);
+    void AddResistance(DamageType damage_type);
 
-    std::string Name;
-    std::shared_ptr<const StatBlock> Stats;
-    int Initiative;
-    int Team;
-    std::vector<ActionRep> ActionQueue;
-    std::vector<ActionRep> BonusActionQueue;
-    int SuccessfulDeathSaves, FailedDeathSaves;
-    Statistics InfoStats;
-    Arena & CurrentArena;
+    void RemoveResistance(DamageType damage_type);
+
+    [[nodiscard]]int GetSave(Stat stat);
+
+    void AddEffect(const OngoingEffect * ongoing_effect);
 
     /**
-     * Retores health to the actor, limited by max HP.
+     * Restores health to the actor, limited by max HP.
      * @param amount How much to heal by.
      * @return The actual amount healed.
      */
     int Heal(int amount);
 
+    std::string Name;
+    std::shared_ptr<const StatBlock> Stats;
+    int Initiative{0};
+    int Team{0};
+    std::vector<ActionRep> ActionQueue;
+    std::vector<ActionRep> BonusActionQueue;
+    int SuccessfulDeathSaves{0}, FailedDeathSaves{0};
+    Statistics InfoStats{};
+    Arena & CurrentArena;
     int TempDamageBonus = 0;
-    int TempResistance = 0;
-
 private:
+    int TempResistance[DamageTypesMax]{0};
     std::vector<EffectRep> OngoingEffects;
-    int HP, MaxHP;
-    DeathState State;
+    int HP{}, HPMax{};
+    DeathState State{DeathState::Conscious};
 
     void DeathCheck();
 

@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <filesystem>
 
 #include "ImportJson.h"
 #include "Actor.h"
@@ -23,22 +24,34 @@ Stat ToStat(const std::string & s)
     else return None;
 }
 
+DamageType ToDamageType(const std::string & s)
+{
+    if (s == "Slashing") return Slashing;
+    else if (s == "Bludgeoning") return Bludgeoning;
+    else if (s == "Piercing") return Piercing;
+    else if (s == "Fire") return Fire;
+    else if (s == "Cold") return Cold;
+    else if (s == "Lightning") return Lightning;
+    else if (s == "Thunder") return Thunder;
+    else if (s == "Acid") return Acid;
+    else if (s == "Poison") return Poison;
+    else if (s == "Necrotic") return Necrotic;
+    else if (s == "Radiant") return Radiant;
+    else if (s == "Psychic") return Psychic;
+    else if (s == "Force") return Force;
+    else return InvalidDamageType;
+}
+
 Action * LoadSpecial(const nlohmann::json & js);
-
 Action * LoadMultiAction(const nlohmann::json & js);
-
 Action * LoadWeaponAttack(const nlohmann::json & json);
 
-nlohmann::json OpenJson(std::string_view file_name)
+nlohmann::json OpenJson(const std::filesystem::path & path)
 {
-    if (Out(Info)) Out.O() << "Loading \"" << file_name << "\"." << std::endl;
-
-    std::string path = std::string("./Resources/") + std::string(file_name) + std::string(".json");
-
     std::ifstream file(path);
     if (!file.is_open())
     {
-        if (Out(Warnings)) Out.O() << "Warning: \"" << path << "\": " << strerror(errno) << std::endl;
+        OUT_WARNING << "Warning: \"" << path << "\": " << strerror(errno) << WARNING_END;
         return nlohmann::json();
     }
     nlohmann::json js;
@@ -48,7 +61,7 @@ nlohmann::json OpenJson(std::string_view file_name)
     }
     catch (nlohmann::json::exception & e)
     {
-        if (Out(Warnings)) Out.O() << "Warning: \"" << file_name << "\": " << e.what() << std::endl;
+        OUT_WARNING << "Warning: \"" << path << "\": " << e.what() << WARNING_END;
         return nlohmann::json();
     }
     return js;
@@ -74,6 +87,15 @@ void from_json(const nlohmann::json & js, std::shared_ptr<const Action> & action
     action = Action::Get(name);
 }
 
+Action * LoadAction(const nlohmann::json & js);
+
+void from_json(const nlohmann::json & js, const Action *& action)
+{
+    std::string name;
+    Import(js, name, "Name");
+    action = LoadAction(js);
+}
+
 Effect * LoadEffect(const nlohmann::json & js);
 
 void from_json(const nlohmann::json & js, const Effect *& effect)
@@ -90,74 +112,19 @@ void from_json(const nlohmann::json & js, Effect *& effect)
     effect = LoadEffect(js);
 }
 
-void from_json(const nlohmann::json & js, WeaponAttack & action)
-{
-    Import(js, action.Name, "Name");
-    Import(js, action.Target, "Target");
-    std::string s;
-    Import(js, s, "KeyAttribute");
-    action.KeyAttribute = ToStat(s);
-    Import(js, action.DamageDiceNum, "DamageDiceNum");
-    int die_size;
-    Import(js, die_size, "DamageDiceSize");
-    action.DamageDie = Die::Get(die_size);
-}
-
-void from_json(const nlohmann::json & js, MultiAction & action)
-{
-    Import(js, action.Name, "Name");
-    Import(js, action.Target, "Target");
-    Import(js, action.Actions, "Actions");
-}
-
-void from_json(const nlohmann::json & js, SpecialAction & action)
-{
-    Import(js, action.Name, "Name");
-    Import(js, action.Target, "Target");
-    Import(js, action.Effects, "Effects");
-}
-
-void from_json(const nlohmann::json & js, ActionInstance & weighted_action)
-{
-    Import(js, weighted_action.Action, "Action");
-    Import(js, weighted_action.Uses, "Uses");
-}
-
 void from_json(const nlohmann::json & js, Effect & effect)
 {
     std::string type;
     Import(js, type, "Type");
-
 }
 
-void from_json(const nlohmann::json & js, EffectHealing & effect)
+void from_json(const nlohmann::json & js, ActionInstance & action_instance)
 {
-    Import(js, effect.HealingDieNum, "HealingDieNum");
-    int die_size;
-    Import(js, die_size, "HealingDieSize");
-    effect.HealingDie = Die::Get(die_size);
-    Import(js, effect.HealingBonus, "HealingBonus");
-    std::string s;
-    Import(js, s, "KeyAttribute");
-    effect.KeyAttribute = ToStat(s);
-    Import(js, effect.AddLevelMod, "AddLevelMod");
-}
-
-void from_json(const nlohmann::json & js, OngoingDamageBonus & effect)
-{
-    Import(js, effect.Duration, "Duration");
-    Import(js, effect.BonusDamage, "BonusDamage");
-}
-
-void from_json(const nlohmann::json & js, OngoingResistance & effect)
-{
-    Import(js, effect.Duration, "Duration");
-}
-
-void from_json(const nlohmann::json & js, EffectImmediateExtraActions & effect)
-{
-    Import(js, effect.ExtraActions, "ExtraActions");
-    Import(js, effect.ExtraBonusActions, "ExtraBonusActions");
+    Import(js, action_instance.Action, "Action");
+    Import(js, action_instance.Uses, "Uses");
+    std::string key_stat;
+    Import(js, key_stat, "KeyStat");
+    action_instance.KeyStat = ToStat(key_stat);
 }
 
 bool Invalid(const ActionInstance & a)
@@ -165,54 +132,109 @@ bool Invalid(const ActionInstance & a)
     return a.Action == nullptr;
 }
 
-void from_json(const nlohmann::json & js, StatBlock & stat_block)
+void from_json(const nlohmann::json & js, StatBlock *& stat_block)
 {
-    Import(js, stat_block.Name, "Name");
-    Import(js, stat_block.Type, "Type");
-    Import(js, stat_block.HDNum, "HDNum");
-    Import(js, stat_block.HDSize, "HDSize");
-    Import(js, stat_block.Proficiency, "Proficiency");
-    Import(js, stat_block.InitiativeBonus, "InitiativeBonus");
-    Import(js, stat_block.ArmorValue, "ArmorValue");
-    Import(js, stat_block.ShieldValue, "ShieldValue");
-    Import(js, stat_block.AttackBonus, "AttackBonus");
-    Import(js, stat_block.DamageBonus, "DamageBonus");
-    Import(js, stat_block.Strength, "Strength");
-    Import(js, stat_block.Dexterity, "Dexterity");
-    Import(js, stat_block.Constitution, "Constitution");
-    Import(js, stat_block.Intelligence, "Intelligence");
-    Import(js, stat_block.Wisdom, "Wisdom");
-    Import(js, stat_block.Charisma, "Charisma");
-    Import(js, stat_block.SaveSTR, "SaveSTR");
-    Import(js, stat_block.SaveDEX, "SaveDEX");
-    Import(js, stat_block.SaveCON, "SaveCON");
-    Import(js, stat_block.SaveINT, "SaveINT");
-    Import(js, stat_block.SaveWIS, "SaveWIS");
-    Import(js, stat_block.SaveCHA, "SaveCHA");
-    Import(js, stat_block.Crit, "Crit");
-    Import(js, stat_block.Actions, "Actions");
-    Import(js, stat_block.BonusActions, "BonusActions");
+    delete stat_block;
+    stat_block = new StatBlock;
+
+    Import(js, stat_block->Name, "Name");
+    Import(js, stat_block->Type, "Type");
+    Import(js, stat_block->HDNum, "HDNum");
+    Import(js, stat_block->HDSize, "HDSize");
+    Import(js, stat_block->Proficiency, "Proficiency");
+    Import(js, stat_block->InitiativeBonus, "InitiativeBonus");
+    Import(js, stat_block->ArmorValue, "ArmorValue");
+    Import(js, stat_block->ShieldValue, "ShieldValue");
+    Import(js, stat_block->AttackBonus, "AttackBonus");
+    Import(js, stat_block->DamageBonus, "DamageBonus");
+    Import(js, stat_block->Strength, "Strength");
+    Import(js, stat_block->Dexterity, "Dexterity");
+    Import(js, stat_block->Constitution, "Constitution");
+    Import(js, stat_block->Intelligence, "Intelligence");
+    Import(js, stat_block->Wisdom, "Wisdom");
+    Import(js, stat_block->Charisma, "Charisma");
+    Import(js, stat_block->SaveSTR, "SaveSTR");
+    Import(js, stat_block->SaveDEX, "SaveDEX");
+    Import(js, stat_block->SaveCON, "SaveCON");
+    Import(js, stat_block->SaveINT, "SaveINT");
+    Import(js, stat_block->SaveWIS, "SaveWIS");
+    Import(js, stat_block->SaveCHA, "SaveCHA");
+    Import(js, stat_block->Crit, "Crit");
+    Import(js, stat_block->Actions, "Actions");
+    Import(js, stat_block->BonusActions, "BonusActions");
 
 
     // Remove any invalid actions or bonus actions.
-    stat_block.Actions.erase(std::remove_if(stat_block.Actions.begin(), stat_block.Actions.end(), Invalid),
-                             stat_block.Actions.end());
-    stat_block.BonusActions.erase(
-            std::remove_if(stat_block.BonusActions.begin(), stat_block.BonusActions.end(), Invalid),
-            stat_block.BonusActions.end());
+    stat_block->Actions.erase(std::remove_if(stat_block->Actions.begin(), stat_block->Actions.end(), Invalid),
+                              stat_block->Actions.end());
+    stat_block->BonusActions.erase(
+            std::remove_if(stat_block->BonusActions.begin(), stat_block->BonusActions.end(), Invalid),
+            stat_block->BonusActions.end());
 
-    stat_block.CalculateDerivedStats();
+    stat_block->CalculateDerivedStats();
 }
 
-StatBlock * ParseStatBlock(std::string_view file_name)
+StatBlock * ParseStatBlock(std::string_view name)
 {
-    nlohmann::json js = OpenJson(file_name);
+    OUT_INFO << "Loading \"" << name << "\"." << INFO_END
 
-    StatBlock * block = new StatBlock();
+    std::string path = "./Resources/StatBlocks/";
 
-    js.get_to(*block);
+    for (const auto & entry : std::filesystem::directory_iterator(path))
+    {
+        nlohmann::json js = OpenJson(entry.path());
+        try
+        {
+            StatBlock * p = nullptr;
+            Import(js, p, name.data());
+            if (p != nullptr)
+                return p;
+        }
+        catch (nlohmann::json::exception & e)
+        {
+            OUT_ERROR << name << ": " << e.what() << ERROR_END;
+            return nullptr;
+        }
+    }
+    OUT_WARNING << name << " not found." << WARNING_END;
+    return nullptr;
+}
 
-    return block;
+const Action * ParseAction(std::string_view name)
+{
+    OUT_INFO << "Loading \"" << name << "\"." << INFO_END
+
+    std::string path = "./Resources/Actions/";
+
+    for (const auto & entry : std::filesystem::directory_iterator(path))
+    {
+        nlohmann::json js = OpenJson(entry.path());
+        try
+        {
+            const Action * p = nullptr;
+            Import(js, p, name.data());
+            if (p != nullptr)
+                return p;
+        }
+        catch (nlohmann::json::exception & e)
+        {
+            OUT_ERROR << "Error: \"" << name << "\": " << e.what() << ERROR_END;
+            return nullptr;
+        }
+    }
+    OUT_WARNING << "Warning: \"" << name << "\" not found." << WARNING_END;
+    return nullptr;
+}
+
+// Load Actions ***********************************************************************************
+
+
+void from_json(const nlohmann::json & js, WeaponAttack & action)
+{
+    Import(js, action.DamageDiceNum, "DamageDiceNum");
+    int die_size;
+    Import(js, die_size, "DamageDiceSize");
+    action.DamageDie = Die::Get(die_size);
 }
 
 Action * LoadWeaponAttack(const nlohmann::json & js)
@@ -222,11 +244,21 @@ Action * LoadWeaponAttack(const nlohmann::json & js)
     return weapon_attack;
 }
 
+void from_json(const nlohmann::json & js, MultiAction & action)
+{
+    Import(js, action.Actions, "Actions");
+}
+
 Action * LoadMultiAction(const nlohmann::json & js)
 {
     auto * multi_action = new MultiAction();
     js.get_to(*multi_action);
     return multi_action;
+}
+
+void from_json(const nlohmann::json & js, SpecialAction & action)
+{
+    Import(js, action.Effects, "Effects");
 }
 
 Action * LoadSpecial(const nlohmann::json & js)
@@ -236,22 +268,57 @@ Action * LoadSpecial(const nlohmann::json & js)
     return special;
 }
 
-const Action * ParseAction(std::string_view file_name)
+void from_json(const nlohmann::json & js, Spell & action)
 {
-    nlohmann::json js = OpenJson(file_name);
+    std::string stat_name;
+    Import(js, stat_name, "SavingThrow");
+    action.SavingThrow = ToStat(stat_name);
+    Import(js, action.SpellAttack, "SpellAttack");
+    Import(js, action.HitEffects, "HitEffects");
+    Import(js, action.MissEffects, "MissEffects");
+}
 
-    if (js.empty())
-        return nullptr;
+Action * LoadSpell(const nlohmann::json & js)
+{
+    auto * spell = new Spell();
+    js.get_to(*spell);
+    return spell;
+}
 
+Action * LoadAction(const nlohmann::json & js)
+{
     std::string type;
     Import(js, type, "Type");
 
-    if (type == "Special") return LoadSpecial(js);
-    if (type == "WeaponAttack") return LoadWeaponAttack(js);
-    if (type == "MultiAction") return LoadMultiAction(js);
+    Action * action = nullptr;
+    if (type == "Spell") action = LoadSpell(js);
+    else if (type == "WeaponAttack") action = LoadWeaponAttack(js);
+    else if (type == "Special") action = LoadSpecial(js);
+    else if (type == "MultiAction") action = LoadMultiAction(js);
 
-    if (Out(Warnings)) Out.O() << "Unrecognized action type \"" << type << "\"." << std::endl;
-    return nullptr;
+    if (action == nullptr)
+    {
+        OUT_WARNING << "Unrecognized action type \"" << type << "\"." << WARNING_END;
+        return action;
+    }
+
+    Import(js, action->Name, "Name");
+    Import(js, action->Target, "Target");
+
+    return action;
+}
+
+// Load Effects ***********************************************************************************
+
+
+void from_json(const nlohmann::json & js, EffectHealing & effect)
+{
+    Import(js, effect.HealingDieNum, "HealingDieNum");
+    int die_size;
+    Import(js, die_size, "HealingDieSize");
+    effect.HealingDie = Die::Get(die_size);
+    Import(js, effect.HealingBonus, "HealingBonus");
+    Import(js, effect.AddLevelMod, "AddLevelMod");
 }
 
 Effect * LoadEffectHealing(const nlohmann::json & js)
@@ -263,9 +330,21 @@ Effect * LoadEffectHealing(const nlohmann::json & js)
 
 Effect * LoadEffectImmediateExtraAction(const nlohmann::json & js)
 {
-    auto * effect = new EffectImmediateExtraActions();
+    auto * effect = new EffectExtraActions();
     js.get_to(*effect);
     return effect;
+}
+
+void from_json(const nlohmann::json & js, EffectExtraActions & effect)
+{
+    Import(js, effect.ExtraActions, "ExtraActions");
+    Import(js, effect.ExtraBonusActions, "ExtraBonusActions");
+}
+
+void from_json(const nlohmann::json & js, OngoingDamageBonus & effect)
+{
+    Import(js, effect.Duration, "Duration");
+    Import(js, effect.BonusDamage, "BonusDamage");
 }
 
 OngoingEffect * LoadEffectOngoingDamageBonus(const nlohmann::json & js)
@@ -275,9 +354,36 @@ OngoingEffect * LoadEffectOngoingDamageBonus(const nlohmann::json & js)
     return effect;
 }
 
+void from_json(const nlohmann::json & js, OngoingResistance & effect)
+{
+    Import(js, effect.Duration, "Duration");
+    std::string damage_type;
+    Import(js, damage_type, "ResistanceType");
+    effect.ResistanceType = ToDamageType(damage_type);
+}
+
 OngoingEffect * LoadEffectOngoingResistance(const nlohmann::json & js)
 {
     auto * effect = new OngoingResistance();
+    js.get_to(*effect);
+    return effect;
+}
+
+void from_json(const nlohmann::json & js, EffectDamage & effect)
+{
+    Import(js, effect.DamageDieNum, "DamageDieNum");
+    int die_size;
+    Import(js, die_size, "DamageDieSize");
+    effect.DamageDie = Die::Get(die_size);
+    Import(js, effect.DamageBonus, "DamageBonus");
+    std::string damage_type;
+    Import(js, damage_type, "DamageType");
+    effect.DamageType = ToDamageType(damage_type);
+}
+
+Effect * LoadEffectDamage(const nlohmann::json & js)
+{
+    auto * effect = new EffectDamage();
     js.get_to(*effect);
     return effect;
 }
@@ -287,11 +393,18 @@ Effect * LoadEffect(const nlohmann::json & js)
     std::string type;
     Import(js, type, "Type");
 
-    if (type == "Healing") return LoadEffectHealing(js);
-    if (type == "ImmediateExtraActions") return LoadEffectImmediateExtraAction(js);
-    if (type == "DamageBonus") return LoadEffectOngoingDamageBonus(js);
-    if (type == "Resistance") return LoadEffectOngoingResistance(js);
+    Effect * effect = nullptr;
+    if (type == "Damage") effect = LoadEffectDamage(js);
+    else if (type == "Healing") effect = LoadEffectHealing(js);
+    else if (type == "ImmediateExtraActions") effect = LoadEffectImmediateExtraAction(js);
+    else if (type == "DamageBonus") effect = LoadEffectOngoingDamageBonus(js);
+    else if (type == "Resistance") effect = LoadEffectOngoingResistance(js);
 
-    if (Out(Warnings)) Out.O() << "Unrecognized effect type \"" << type << "\"." << std::endl;
-    return nullptr;
+    if (effect == nullptr)
+    {
+        OUT_WARNING << "Unrecognized effect type \"" << type << "\"." << WARNING_END;
+        return effect;
+    }
+
+    return effect;
 }

@@ -3,6 +3,7 @@
 //
 
 #include <cstring>
+#include <utility>
 #include "Arena.h"
 #include "Actor.h"
 #include "Action.h"
@@ -45,27 +46,27 @@ void Actor::Initialize()
     FailedDeathSaves = 0;
     State = DeathState::Conscious;
 
-    MaxHP = 0;
+    HPMax = 0;
     for (int i = 0; i < Stats->HDNum; ++i)
-        MaxHP += Stats->HD->Roll() + Stats->CON;
+        HPMax += Stats->HD->Roll() + Stats->CON;
 
-    HP = MaxHP;
+    HP = HPMax;
 
 }
 
 void Actor::FillActionQueues()
 {
     ActionQueue.clear();
-    for (const ActionInstance & weighted_action : Stats->Actions)
-        ActionQueue.push_back(ActionRep{weighted_action.Action, weighted_action.Uses});
+    for (const ActionInstance & action_instance : Stats->Actions)
+        ActionQueue.push_back(ActionRep{action_instance, action_instance.Uses});
 
     BonusActionQueue.clear();
-    for (const ActionInstance & weighted_action : Stats->BonusActions)
-        BonusActionQueue.push_back(ActionRep{weighted_action.Action, weighted_action.Uses});
+    for (const ActionInstance & action_instance : Stats->BonusActions)
+        BonusActionQueue.push_back(ActionRep{action_instance, action_instance.Uses});
 }
 
 Actor::Actor(std::string_view name, std::shared_ptr<const StatBlock> stat_block, int team, Arena & arena) :
-        Stats(stat_block), Team(team), Name(name.data()), CurrentArena(arena)
+        Stats(std::move(stat_block)), Team(team), Name(name.data()), CurrentArena(arena)
 {
     FillActionQueues();
     Initialize();
@@ -92,55 +93,69 @@ bool Actor::Conscious() const
     return State == DeathState::Conscious;
 }
 
+bool NoDuration(const Actor::EffectRep & e)
+{
+    return e.duration_remaining <= 0;
+}
+
 void Actor::DoRound()
 {
+    if (HP == 0 && Alive())
+        DeathSave();
+
     if (Conscious())
     {
         TakeBonusAction();
         TakeAction();
     }
-    else if (Alive())
-        DeathSave();
+    for (auto & e : OngoingEffects)
+    {
+        --e.duration_remaining;
+        if (NoDuration(e))
+            e.effect->End(this);
+    }
+    if (!OngoingEffects.empty())
+        OngoingEffects.erase(std::remove_if(OngoingEffects.begin(), OngoingEffects.end(), NoDuration),
+                             OngoingEffects.end());
 }
 
 void Actor::TakeAction()
 {
-    int action_index = ChooseAction(ActionQueue);
-    if (action_index != -1)
+    auto action = ChooseAction(ActionQueue);
+    if (action != nullptr)
     {
-        bool used = (*ActionQueue[action_index].Action)(*this);
+        bool used = action->Inst.Action->DoAction(*this, action->Inst.KeyStat);
         if (used)
-            --ActionQueue[action_index].Uses;
+            --action->UsesRemaining;
     }
 }
 
 void Actor::TakeBonusAction()
 {
-
-    int action_index = ChooseAction(BonusActionQueue);
-    if (action_index != -1)
+    auto action = ChooseAction(BonusActionQueue);
+    if (action != nullptr)
     {
-        bool used = (*BonusActionQueue[action_index].Action)(*this);
+        bool used = action->Inst.Action->DoAction(*this, action->Inst.KeyStat);
         if (used)
-            --BonusActionQueue[action_index].Uses;
+            --action->UsesRemaining;
     }
 }
 
-int Actor::ChooseAction(const std::vector<ActionRep> & actions) const
+Actor::ActionRep * Actor::ChooseAction(std::vector<ActionRep> & actions) const
 {
-    for (int i = 0; i < actions.size(); ++i)
-        if (actions[i].Uses != 0)
-            return i;
+    for (auto & action : actions)
+        if (action.UsesRemaining != 0)
+            return &action;
 
-    return -1;
+    return nullptr;
 }
 
-int Actor::TakeDamage(int damage)
+int Actor::TakeDamage(int damage, DamageType damage_type)
 {
-    if (HasResistance())
+    if (HasResistance(damage_type))
         damage /= 2;
 
-    if (HP <= 0)
+    if (State == Dying)
     {
         FailedDeathSaves += 2;
         DeathCheck();
@@ -151,9 +166,18 @@ int Actor::TakeDamage(int damage)
         InfoStats.DamageTaken += damage;
         if (HP <= 0)
         {
-            HP = 0;
-            State = DeathState::Dying;
-            if (Out(AllActions)) Out.O() << "        " << Name << " has fallen!" << std::endl;
+            if (-HP > HPMax)
+            {
+                HP = 0;
+                State = DeathState::Dead;
+                OUT_ALL << "        " << Name << " dies instantly!" << std::endl;
+            }
+            else
+            {
+                HP = 0;
+                State = DeathState::Dying;
+                OUT_ALL << "        " << Name << " has fallen!" << std::endl;
+            }
         }
     }
     return damage;
@@ -168,8 +192,8 @@ void Actor::DeathSave()
 {
     if (SuccessfulDeathSaves < 3 && FailedDeathSaves < 3)
     {
+        OUT_ALL << "    " << Name << " makes a death saving throw: ";
         int roll = D20.Roll();
-        if (Out(AllActions)) Out.O() << "    " << Name << " makes a death saving throw: " << roll;
         if (roll == 20)
         {
             // Miracluous Recovery.
@@ -177,23 +201,23 @@ void Actor::DeathSave()
             SuccessfulDeathSaves = 0;
             FailedDeathSaves = 0;
             State = DeathState::Conscious;
-            if (Out(AllActions)) Out.O() << " Critical Success!" << std::endl;
-            if (Out(AllActions)) Out.O() << Name << " recovers!" << std::endl;
+            OUT_ALL << " Critical Success!" << std::endl
+                    << "        " << Name << " recovers!" << std::endl;
             return;
         }
         else if (roll >= 10)
         {
-            if (Out(AllActions)) Out.O() << " Success." << std::endl;
+            OUT_ALL << " Success." << std::endl;
             ++SuccessfulDeathSaves;
         }
         else if (roll > 1)
         {
-            if (Out(AllActions)) Out.O() << " Fail." << std::endl;
+            OUT_ALL << " Fail." << std::endl;
             ++FailedDeathSaves;
         }
         else
         {
-            if (Out(AllActions)) Out.O() << " Critical fail!" << std::endl;
+            OUT_ALL << " Critical fail!" << std::endl;
             FailedDeathSaves += 2;
         }
     }
@@ -207,13 +231,13 @@ void Actor::DeathCheck()
         // Dead
         State = DeathState::Dead;
         InfoStats.Deaths++;
-        if (Out(AllActions)) Out.O() << "    " << Name << " died!" << std::endl;
+        OUT_ALL << "        " << Name << " died!" << std::endl;
     }
     else if (State == DeathState::Dying && SuccessfulDeathSaves >= 3)
     {
         // Stable
         State = DeathState::Stable;
-        if (Out(AllActions)) Out.O() << "    " << Name << " has stabilized." << std::endl;
+        OUT_ALL << "        " << Name << " has stabilized." << std::endl;
     }
 }
 
@@ -226,32 +250,39 @@ int Actor::GetStatMod(enum Stat stat) const
 {
     switch (stat)
     {
-        default: return 0;
-        case Strength: return Stats->STR;
-        case Dexterity: return Stats->DEX;
-        case Constitution: return Stats->CON;
-        case Intelligence: return Stats->INT;
-        case Wisdom: return Stats->WIS;
-        case Charisma: return Stats->CHA;
+        default:
+            return 0;
+        case Strength:
+            return Stats->STR;
+        case Dexterity:
+            return Stats->DEX;
+        case Constitution:
+            return Stats->CON;
+        case Intelligence:
+            return Stats->INT;
+        case Wisdom:
+            return Stats->WIS;
+        case Charisma:
+            return Stats->CHA;
     }
 }
 
 int Actor::Heal(int amount)
 {
-    if (amount + HP > MaxHP)
-        amount = MaxHP - HP;
+    if (amount + HP > HPMax)
+        amount = HPMax - HP;
     HP += amount;
     return amount;
 }
 
 bool Actor::IsInjured() const
 {
-    return HP < MaxHP;
+    return HP < HPMax;
 }
 
-void Actor::AddEffect(const OngoingEffect * effect)
+void Actor::AddEffect(const OngoingEffect * ongoing_effect)
 {
-    OngoingEffects.emplace_back(EffectRep{effect, effect->Duration});
+    OngoingEffects.emplace_back(EffectRep{ongoing_effect, ongoing_effect->Duration});
 }
 
 int Actor::GetDamageBonus() const
@@ -259,9 +290,51 @@ int Actor::GetDamageBonus() const
     return TempDamageBonus + Stats->DamageBonus;
 }
 
-bool Actor::HasResistance() const
+bool Actor::HasResistance(DamageType damage_type) const
 {
-    return TempResistance > 0;
+    return TempResistance[damage_type] > 0;
+}
+
+int Actor::GetSave(Stat stat)
+{
+    switch (stat)
+    {
+        case Strength:
+            return Stats->STRSaveMod;
+        case Dexterity:
+            return Stats->DEXSaveMod;
+        case Constitution:
+            return Stats->CONSaveMod;
+        case Intelligence:
+            return Stats->INTSaveMod;
+        case Wisdom:
+            return Stats->WISSaveMod;
+        case Charisma:
+            return Stats->CHASaveMod;
+        default:
+            return 0;
+    }
+}
+
+void Actor::AddResistance(DamageType damage_type)
+{
+    if (damage_type < DamageTypesMax)
+        ++TempResistance[damage_type];
+    else
+    OUT_WARNING << "Invalid damage resistance was applied to " << Name << WARNING_END;
+}
+
+void Actor::RemoveResistance(DamageType damage_type)
+{
+    if (damage_type < DamageTypesMax)
+        --TempResistance[damage_type];
+    else
+    OUT_WARNING << "Invalid damage resistance was removed from " << Name << WARNING_END;
+}
+
+int Actor::MaxHP() const
+{
+    return HPMax;
 }
 
 std::shared_ptr<const StatBlock> StatBlock::Get(const std::string_view & name)
@@ -271,7 +344,10 @@ std::shared_ptr<const StatBlock> StatBlock::Get(const std::string_view & name)
     {
         std::shared_ptr<StatBlock> new_stat_block(ParseStatBlock(name));
         if (new_stat_block == nullptr)
+        {
+            OUT_WARNING << "Failed to load \"" << name << "\"." << WARNING_END;
             return nullptr;
+        }
         else
         {
             StatBlockMap[name] = new_stat_block;
@@ -281,3 +357,4 @@ std::shared_ptr<const StatBlock> StatBlock::Get(const std::string_view & name)
     else
         return iter->second.lock();
 }
+

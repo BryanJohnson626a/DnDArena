@@ -16,15 +16,15 @@ class Group
 {
 public:
 
-    Group(std::string name, int team, Arena & arena);
+    Group(std::string_view name, int team, Arena & arena);
 
     void ClearStats();
 
     int AddActor(std::string_view name, std::shared_ptr<const StatBlock> stat_block);
 
-    int MembersAlive() const;
+    [[nodiscard]] int MembersAlive() const;
 
-    int MembersConscious() const;
+    [[nodiscard]] int MembersConscious() const;
 
     Actor & FirstAlive();
 

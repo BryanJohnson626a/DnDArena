@@ -15,7 +15,7 @@
 // Results: Final results after all trials.
 // TrialResults: Results of each trial.
 // AllActions: Detailed breakdown of each trial.
-enum OL
+enum MessageLevel
 {
     NoOutput,
     Errors,
@@ -27,33 +27,39 @@ enum OL
 };
 
 // Change this to have compiler automatically remove some or all debug code.
-const enum OL MAX_OUTPUT_LEVEL = AllActions;
+const enum MessageLevel MAX_OUTPUT_LEVEL = AllActions;
 
 class Output
 {
 public:
+    static Output & Out();
 
-    explicit Output(std::ostream & out_stream = std::cout, enum OL level = NoOutput);
+    explicit Output(std::ostream & out_stream = std::cout, enum MessageLevel level = NoOutput);
 
-    //void operator()(enum OutputLevel level, const char * message, ...);
-    bool operator()(enum OL level) const;
+    [[nodiscard]] bool CheckLevel(enum MessageLevel level) const;
+    [[nodiscard]] std::ostream & GetStream();
+    bool SetLevel(MessageLevel new_level);
 
-    std::ostream & O();
-
-    OL Level;
-    std::ostream * OutStream;
+    MessageLevel Level;
+    std::ostream * MessageStream;
+    int errors{0};
+    int warnings{0};
 };
 
-extern Output Out;
+
+#define OUT_ERROR {++Output::Out().errors; if(Output::Out().CheckLevel(Errors)) Output::Out().GetStream() << "\x1B[31mError: " << __FILE__ << " : " << __LINE__ << " : "
+#define ERROR_END "\033[0m\t\t" << std::endl;}
+#define OUT_WARNING {++Output::Out().warnings; if(Output::Out().CheckLevel(Warnings)) Output::Out().GetStream() << "\x1B[33mWarning: " << __FILE__ << " : " << __LINE__ << " : "
+#define WARNING_END "\033[0m\t\t" << std::endl;}
+#define OUT_INFO {if(Output::Out().CheckLevel(Info)) Output::Out().GetStream() << "\x1B[32mInfo: "
+#define INFO_END "\033[0m\t\t" << std::endl;}
+#define OUT_RESULTS if(Output::Out().CheckLevel(Results)) Output::Out().GetStream()
+#define OUT_TRIALS if(Output::Out().CheckLevel(TrialResults)) Output::Out().GetStream()
+#define OUT_ALL if(Output::Out().CheckLevel(AllActions)) Output::Out().GetStream()
 
 std::ostream & operator<<(std::ostream & out, const ActorPtrs & actors);
-
 std::ostream & operator<<(std::ostream & out, const Arena & arena);
-
 std::ostream & operator<<(std::ostream & out, const Group & group);
-
 std::ostream & operator<<(std::ostream & out, const Groups & groups);
-
 std::ostream & operator<<(std::ostream & out, const Actor & actor);
-
 std::ostream & operator<<(std::ostream & out, const Action & action);

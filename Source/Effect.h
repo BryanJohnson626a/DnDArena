@@ -10,28 +10,38 @@ class Effect
 {
 public:
     virtual ~Effect() = default;
-    virtual void operator()(Actor & user, std::vector<Actor*> & targets) const = 0;
+    virtual void DoEffect(Actor & user, std::vector<Actor*> & targets) const = 0;
 };
 
 class EffectHealing : public Effect
 {
 public:
-    void operator()(Actor & user, std::vector<Actor*> & targets) const override ;
+    void DoEffect(Actor & user, std::vector<Actor*> & targets) const override ;
 
-    int HealingDieNum;
-    Die * HealingDie;
-    int HealingBonus;
-    Stat KeyAttribute;
-    float AddLevelMod;
+    int HealingDieNum{0};
+    Die * HealingDie{nullptr};
+    int HealingBonus{0};
+    Stat KeyAttribute{None};
+    float AddLevelMod{0};
 };
 
-class EffectImmediateExtraActions : public Effect
+class EffectExtraActions : public Effect
 {
 public:
-    void operator()(Actor & user, std::vector<Actor*> & targets) const override ;
+    void DoEffect(Actor & user, std::vector<Actor*> & targets) const override ;
 
-    int ExtraActions;
-    int ExtraBonusActions;
+    int ExtraActions{0};
+    int ExtraBonusActions{0};
+};
+
+class EffectDamage : public Effect
+{
+public:
+    void DoEffect(Actor & user, std::vector<Actor*> & targets) const override ;
+    int DamageDieNum{0};
+    Die * DamageDie{nullptr};
+    int DamageBonus{0};
+    DamageType DamageType;
 };
 
 class OngoingEffect : public Effect
@@ -41,22 +51,23 @@ public:
     virtual void End(Actor * target) const = 0;
 
     // How many rounds the effect lasts.
-    int Duration;
+    int Duration{0};
 };
 
 class OngoingDamageBonus : public OngoingEffect
 {
 public:
-    void operator()(Actor & user, std::vector<Actor*> & targets) const override ;
+    void DoEffect(Actor & user, std::vector<Actor*> & targets) const override ;
     void End(Actor * target) const override ;
 
-    int BonusDamage;
+    int BonusDamage{0};
 };
 
 class OngoingResistance : public OngoingEffect
 {
 public:
-    void operator()(Actor & user, std::vector<Actor*> & targets) const override ;
+    void DoEffect(Actor & user, std::vector<Actor*> & targets) const override ;
     void End(Actor * target) const override ;
+    DamageType ResistanceType{InvalidDamageType};
 };
 

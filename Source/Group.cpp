@@ -3,10 +3,11 @@
 //
 
 #include <cstring>
+#include <utility>
 #include "Group.h"
 #include "Actor.h"
 
-Group::Group(std::string name, int team, Arena & arena) :
+Group::Group(std::string_view name, int team, Arena & arena) :
 Name(name), Team(team), Wins(0), CurrentArena(arena)
 {}
 
@@ -21,14 +22,14 @@ void Group::ClearStats()
 int Group::AddActor(std::string_view name, std::shared_ptr<const StatBlock> stat_block)
 {
     int index = Members.size();
-    Members.emplace_back(Actor(name, stat_block, Team, CurrentArena));
+    Members.emplace_back(Actor(name, std::move(stat_block), Team, CurrentArena));
     return index;
 }
 
 int Group::MembersAlive() const
 {
     int alive = 0;
-    for (auto actor : Members)
+    for (const auto& actor : Members)
         if (actor.Alive())
             ++alive;
     return alive;
@@ -37,7 +38,7 @@ int Group::MembersAlive() const
 int Group::MembersConscious() const
 {
     int conscious = 0;
-    for (auto actor : Members)
+    for (const auto& actor : Members)
         if (actor.Conscious())
             ++conscious;
     return conscious;

@@ -8,6 +8,22 @@
 #include "Types.h"
 #include "Group.h"
 
+enum ReportType
+{
+    Kills,
+    Deaths,
+    DamageDone,
+    DamageTaken,
+    AttacksLanded,
+    AttacksMissed,
+    AttacksReceived,
+    AttacksAvoided,
+    CritsLanded,
+    CritsReceived,
+    SurvivalRate,
+    KillDeathRatio,
+};
+
 class Arena
 {
 public:
@@ -16,7 +32,7 @@ public:
  * Adds a new team to the arena.
  * @return The index of the new team.
  */
-    int AddTeam(std::string name);
+    int AddTeam(std::string_view name);
 
 /**
  * Adds a combatant to a team.
@@ -49,6 +65,8 @@ public:
     [[nodiscard]] int NumBattles() const;
 
     void DoBattles(int trials);
+
+    float Report(enum ReportType type, std::string_view target = "All");
 
 private:
     void RollInitiative();

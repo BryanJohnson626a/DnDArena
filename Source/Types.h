@@ -6,6 +6,25 @@
 
 #include <vector>
 
+enum DamageType
+{
+    Slashing,
+    Bludgeoning,
+    Piercing,
+    Fire,
+    Cold,
+    Lightning,
+    Thunder,
+    Acid,
+    Poison,
+    Necrotic,
+    Radiant,
+    Psychic,
+    Force,
+    DamageTypesMax,
+    InvalidDamageType,
+};
+
 enum Stat
 {
     None,

@@ -1,0 +1,50 @@
+{
+  "UnarmedStrike": {
+    "Type": "WeaponAttack",
+    "Name": "Unarmed Strike",
+    "Target": "Enemy",
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 1,
+    "DamageType":"Bludgeoning"
+  },
+  "Longsword": {
+    "Type": "WeaponAttack",
+    "Name": "Longsword",
+    "Target": "Enemy",
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 8,
+    "DamageType":"Slashing"
+  },
+  "Greatsword": {
+    "Type": "WeaponAttack",
+    "Name": "Greatsword",
+    "Target": "Enemy",
+    "DamageDiceNum": 2,
+    "DamageDiceSize": 6,
+    "DamageType":"Slashing"
+  },
+  "Greataxe": {
+    "Type": "WeaponAttack",
+    "Name": "Greataxe",
+    "Target": "Enemy",
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 12,
+    "DamageType":"Slashing"
+  },
+  "Scimitar": {
+    "Type": "WeaponAttack",
+    "Name": "Scimitar",
+    "Target": "Enemy",
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 6,
+    "DamageType":"Slashing"
+  },
+  "Stub": {
+    "Type": "WeaponAttack",
+    "Name": "",
+    "Target": "Enemy",
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 1,
+    "DamageType":""
+  }
+}

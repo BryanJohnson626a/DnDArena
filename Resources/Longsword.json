@@ -1,8 +1,0 @@
-{
-  "Type": "WeaponAttack",
-  "Name": "Longsword",
-  "Target":"Enemy",
-  "KeyAttribute": "Strength",
-  "DamageDiceNum": 1,
-  "DamageDiceSize": 8
-} 

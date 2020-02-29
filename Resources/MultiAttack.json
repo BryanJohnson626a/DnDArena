@@ -1,9 +1,0 @@
-{
-  "Type": "MultiAction",
-  "Name": "MultiAttack",
-  "Target":"Enemy",
-  "Actions": [
-      {"Name": "Longsword"},
-      {"Name": "Longsword"}
-  ]
-} 

@@ -1,8 +1,0 @@
-{
-  "Type": "WeaponAttack",
-  "Name": "Unarmed Strike",
-  "Target":"Enemy",
-  "KeyAttribute": "Strength",
-  "DamageDiceNum": 1,
-  "DamageDiceSize": 1
-} 

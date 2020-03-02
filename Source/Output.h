@@ -63,3 +63,4 @@ std::ostream & operator<<(std::ostream & out, const Group & group);
 std::ostream & operator<<(std::ostream & out, const Groups & groups);
 std::ostream & operator<<(std::ostream & out, const Actor & actor);
 std::ostream & operator<<(std::ostream & out, const Action & action);
+std::ostream & operator<<(std::ostream & out, enum DamageType damage_type);

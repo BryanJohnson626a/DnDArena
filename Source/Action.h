@@ -23,6 +23,7 @@ public:
 
     std::string Name;
     std::string Target;
+    int Area{1};
 
     static std::map<std::string, std::weak_ptr<const Action>> ActionMap;
     static std::shared_ptr<const Action> GetWeaponAttackProxy();

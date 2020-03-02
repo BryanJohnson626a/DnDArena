@@ -1,107 +1,107 @@
 {
-   "Orc":{
-      "Name":"Orc",
-      "Type":"Humanoid",
-      "HDNum":2,
-      "HDSize":8,
-      "Proficiency":2,
-      "InitiativeBonus":0,
-      "ArmorValue":2,
-      "ShieldValue":0,
-      "AttackBonus":0,
-      "DamageBonus":0,
-      "Strength":16,
-      "Dexterity":12,
-      "Constitution":16,
-      "Intelligence":7,
-      "Wisdom":11,
-      "Charisma":10,
-      "SaveSTR":false,
-      "SaveDEX":false,
-      "SaveCON":false,
-      "SaveINT":false,
-      "SaveWIS":false,
-      "SaveCHA":false,
-      "Crit":20,
-      "Actions":[
-         {
-            "Action":{
-               "Name":"Greataxe"
-            },
-            "Uses":-1,
-            "KeyStat":"Strength"
-         }
-      ],
-      "BonusActions":[]
-   },
-   "Goblin":{
-      "Name":"Goblin",
-      "Type":"Humanoid",
-      "HDNum":2,
-      "HDSize":6,
-      "Proficiency":2,
-      "InitiativeBonus":0,
-      "ArmorValue":1,
-      "ShieldValue":2,
-      "AttackBonus":0,
-      "DamageBonus":0,
-      "Strength":8,
-      "Dexterity":14,
-      "Constitution":10,
-      "Intelligence":10,
-      "Wisdom":8,
-      "Charisma":8,
-      "SaveSTR":false,
-      "SaveDEX":false,
-      "SaveCON":false,
-      "SaveINT":false,
-      "SaveWIS":false,
-      "SaveCHA":false,
-      "Crit":20,
-      "Actions":[
-         {
-            "Action":{
-               "Name":"Scimitar"
-            },
-            "Uses":-1,
-            "KeyStat":"Dexterity"
-         }
-      ],
-      "BonusActions":[]
-   },
-   "Stub":{
-      "Name":"",
-      "Type":"Humanoid",
-      "HDNum":0,
-      "HDSize":0,
-      "Proficiency":0,
-      "InitiativeBonus":0,
-      "ArmorValue":0,
-      "ShieldValue":0,
-      "AttackBonus":0,
-      "DamageBonus":0,
-      "Strength":0,
-      "Dexterity":0,
-      "Constitution":0,
-      "Intelligence":0,
-      "Wisdom":0,
-      "Charisma":0,
-      "SaveSTR":false,
-      "SaveDEX":false,
-      "SaveCON":false,
-      "SaveINT":false,
-      "SaveWIS":false,
-      "SaveCHA":false,
-      "Crit":20,
-      "Actions":[
-         {
-            "Action":{
-               "Name":""
-            },
-            "Uses":-1,
-            "KeyStat":""
-         }
-      ],
-      "BonusActions":[]
-   }
+  "Orc": {
+    "Name": "Orc",
+    "Type": "Humanoid",
+    "HDNum": 2,
+    "HDSize": 8,
+    "Proficiency": 2,
+    "InitiativeBonus": 0,
+    "ArmorValue": 2,
+    "ShieldValue": 0,
+    "AttackBonus": 0,
+    "DamageBonus": 0,
+    "Strength": 16,
+    "Dexterity": 12,
+    "Constitution": 16,
+    "Intelligence": 7,
+    "Wisdom": 11,
+    "Charisma": 10,
+    "SaveSTR": false,
+    "SaveDEX": false,
+    "SaveCON": false,
+    "SaveINT": false,
+    "SaveWIS": false,
+    "SaveCHA": false,
+    "Crit": 20,
+    "Actions": [
+      {
+        "Action": {
+          "Name": "Greataxe"
+        },
+        "Uses": -1,
+        "KeyStat": "Strength"
+      }
+    ],
+    "BonusActions": []
+  },
+  "Goblin": {
+    "Name": "Goblin",
+    "Type": "Humanoid",
+    "HDNum": 2,
+    "HDSize": 6,
+    "Proficiency": 2,
+    "InitiativeBonus": 0,
+    "ArmorValue": 1,
+    "ShieldValue": 2,
+    "AttackBonus": 0,
+    "DamageBonus": 0,
+    "Strength": 8,
+    "Dexterity": 14,
+    "Constitution": 10,
+    "Intelligence": 10,
+    "Wisdom": 8,
+    "Charisma": 8,
+    "SaveSTR": false,
+    "SaveDEX": false,
+    "SaveCON": false,
+    "SaveINT": false,
+    "SaveWIS": false,
+    "SaveCHA": false,
+    "Crit": 20,
+    "Actions": [
+      {
+        "Action": {
+          "Name": "Scimitar"
+        },
+        "Uses": -1,
+        "KeyStat": "Dexterity"
+      }
+    ],
+    "BonusActions": []
+  },
+  "Stub": {
+    "Name": "",
+    "Type": "Humanoid",
+    "HDNum": 0,
+    "HDSize": 0,
+    "Proficiency": 0,
+    "InitiativeBonus": 0,
+    "ArmorValue": 0,
+    "ShieldValue": 0,
+    "AttackBonus": 0,
+    "DamageBonus": 0,
+    "Strength": 0,
+    "Dexterity": 0,
+    "Constitution": 0,
+    "Intelligence": 0,
+    "Wisdom": 0,
+    "Charisma": 0,
+    "SaveSTR": false,
+    "SaveDEX": false,
+    "SaveCON": false,
+    "SaveINT": false,
+    "SaveWIS": false,
+    "SaveCHA": false,
+    "Crit": 20,
+    "Actions": [
+      {
+        "Action": {
+          "Name": ""
+        },
+        "Uses": -1,
+        "KeyStat": ""
+      }
+    ],
+    "BonusActions": []
+  }
 }

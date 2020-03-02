@@ -44,20 +44,40 @@ int Group::MembersConscious() const
     return conscious;
 }
 
-Actor & Group::FirstAlive()
+Actor * Group::FirstAlive()
 {
     for (auto & actor : Members)
         if (actor.Alive())
-            return actor;
+            return &actor;
 
-    return Members[0];
+    return nullptr;
 }
 
-Actor & Group::FirstConscious()
+ActorPtrs Group::AllAlive()
+{
+    ActorPtrs alive;
+    for (auto & actor : Members)
+        if (actor.Alive())
+            alive.emplace_back(&actor);
+
+    return alive;
+}
+
+Actor * Group::FirstConscious()
 {
     for (auto & actor : Members)
         if (actor.Conscious())
-            return actor;
+            return &actor;
 
-    return FirstAlive();
+    return nullptr;
+}
+
+ActorPtrs Group::AllConscious()
+{
+    ActorPtrs conscious;
+    for (auto & actor : Members)
+        if (actor.Conscious())
+            conscious.emplace_back(&actor);
+
+    return conscious;
 }

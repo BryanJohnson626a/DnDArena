@@ -270,6 +270,11 @@ Action * LoadSpecial(const nlohmann::json & js)
 
 void from_json(const nlohmann::json & js, Spell & action)
 {
+    Import(js, action.Area, "Area");
+    // Scale down raw scale into likely number of targets hit.
+    if (action.Area > 1)
+        action.Area = std::ceil(std::pow(float(action.Area) / 3.14f, 0.5f) * 2);
+
     std::string stat_name;
     Import(js, stat_name, "SavingThrow");
     action.SavingThrow = ToStat(stat_name);
@@ -376,6 +381,7 @@ void from_json(const nlohmann::json & js, EffectDamage & effect)
     Import(js, die_size, "DamageDieSize");
     effect.DamageDie = Die::Get(die_size);
     Import(js, effect.DamageBonus, "DamageBonus");
+    Import(js, effect.DamageMultiplier, "DamageMultiplier");
     std::string damage_type;
     Import(js, damage_type, "DamageType");
     effect.DamageType = ToDamageType(damage_type);

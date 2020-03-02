@@ -1,138 +1,163 @@
 {
-   "SacredFlame1":{
-      "Type":"Spell",
-      "Name":"Sacred Flame",
-      "Target":"Enemy",
-      "SavingThrow":"Dexterity",
-      "SpellAttack":false,
-      "HitEffects":[
-         {
-            "Type":"Damage",
-            "DamageDieNum":1,
-            "DamageDieSize":8,
-            "DamageBonus":0,
-            "DamageType":"Radiant"
-         }
-      ],
-      "MissEffects":[]
-   },
-   "SacredFlame5":{
-      "Type":"Spell",
-      "Name":"Sacred Flame",
-      "Target":"Enemy",
-      "SavingThrow":"Dexterity",
-      "SpellAttack":false,
-      "HitEffects":[
-         {
-            "Type":"Damage",
-            "DamageDieNum":2,
-            "DamageDieSize":8,
-            "DamageBonus":0,
-            "DamageType":"Radiant"
-         }
-      ],
-      "MissEffects":[]
-   },
-   "SacredFlame11":{
-      "Type":"Spell",
-      "Name":"Sacred Flame",
-      "Target":"Enemy",
-      "SavingThrow":"Dexterity",
-      "SpellAttack":false,
-      "HitEffects":[
-         {
-            "Type":"Damage",
-            "DamageDieNum":3,
-            "DamageDieSize":8,
-            "DamageBonus":0,
-            "DamageType":"Radiant"
-         }
-      ],
-      "MissEffects":[]
-   },
-   "SacredFlame17":{
-      "Type":"Spell",
-      "Name":"Sacred Flame",
-      "Target":"Enemy",
-      "SavingThrow":"Dexterity",
-      "SpellAttack":false,
-      "HitEffects":[
-         {
-            "Type":"Damage",
-            "DamageDieNum":4,
-            "DamageDieSize":8,
-            "DamageBonus":0,
-            "DamageType":"Radiant"
-         }
-      ],
-      "MissEffects":[]
-   },
-   "InflictWounds":{
-      "Type":"Spell",
-      "Name":"Inflict Wounds",
-      "Target":"Enemy",
-      "SavingThrow":"None",
-      "SpellAttack":true,
-      "HitEffects":[
-         {
-            "Type":"Damage",
-            "DamageDieNum":3,
-            "DamageDieSize":10,
-            "DamageBonus":0,
-            "DamageType":"Necrotic"
-         }
-      ],
-      "MissEffects":[]
-   },
-   "Stub":{
-      "Type":"Spell",
-      "Name":"Shatter",
-      "Target":"Enemy",
-      "SavingThrow":"None",
-      "SpellAttack":false,
-      "HitEffects":[
-         {
-            "Type":"Damage",
-            "DamageDieNum":1,
-            "DamageDieSize":8,
-            "DamageBonus":0,
-            "DamageType":"Radiant"
-         }
-      ],
-      "MissEffects":[]
-   },
-   "Stub":{
-      "Type":"Spell",
-      "Name":"Call Lightning",
-      "Target":"Enemy",
-      "SavingThrow":"None",
-      "SpellAttack":false,
-      "HitEffects":[
-         {
-            "Type":"Damage",
-            "DamageDieNum":1,
-            "DamageDieSize":8,
-            "DamageBonus":0,
-            "DamageType":"Radiant"
-         }
-      ],
-      "MissEffects":[]
-   },
-   "Stub":{
-      "Type":"Spell",
-      "Name":"",
-      "Target":"Enemy",
-      "SavingThrow":"None",
-      "SpellAttack":false,
-      "HitEffects":[
-         {
-            "Type":"Damage",
-            "DamageDieNum":1,
-            "DamageDieSize":8,
-            "DamageBonus":0,
-            "DamageType":"Radiant"
-         }
-      ],
-      "MissEffects":[]
-   }
+  "SacredFlame1": {
+    "Type": "Spell",
+    "Name": "Sacred Flame",
+    "Target": "Enemy",
+    "Area": 1,
+    "SavingThrow": "Dexterity",
+    "SpellAttack": false,
+    "HitEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 1,
+        "DamageDieSize": 8,
+        "DamageBonus": 0,
+        "DamageMultiplier": 1,
+        "DamageType": "Radiant"
+      }
+    ],
+    "MissEffects": []
+  },
+  "SacredFlame5": {
+    "Type": "Spell",
+    "Name": "Sacred Flame",
+    "Target": "Enemy",
+    "Area": 1,
+    "SavingThrow": "Dexterity",
+    "SpellAttack": false,
+    "HitEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 2,
+        "DamageDieSize": 8,
+        "DamageBonus": 0,
+        "DamageMultiplier": 1,
+        "DamageType": "Radiant"
+      }
+    ],
+    "MissEffects": []
+  },
+  "SacredFlame11": {
+    "Type": "Spell",
+    "Name": "Sacred Flame",
+    "Target": "Enemy",
+    "Area": 1,
+    "SavingThrow": "Dexterity",
+    "SpellAttack": false,
+    "HitEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 3,
+        "DamageDieSize": 8,
+        "DamageBonus": 0,
+        "DamageMultiplier": 1,
+        "DamageType": "Radiant"
+      }
+    ],
+    "MissEffects": []
+  },
+  "SacredFlame17": {
+    "Type": "Spell",
+    "Name": "Sacred Flame",
+    "Target": "Enemy",
+    "Area": 1,
+    "SavingThrow": "Dexterity",
+    "SpellAttack": false,
+    "HitEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 4,
+        "DamageDieSize": 8,
+        "DamageBonus": 0,
+        "DamageMultiplier": 1,
+        "DamageType": "Radiant"
+      }
+    ],
+    "MissEffects": []
+  },
+  "InflictWounds": {
+    "Type": "Spell",
+    "Name": "Inflict Wounds",
+    "Target": "Enemy",
+    "Area": 1,
+    "SavingThrow": "None",
+    "SpellAttack": true,
+    "HitEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 3,
+        "DamageDieSize": 10,
+        "DamageBonus": 0,
+        "DamageMultiplier": 1,
+        "DamageType": "Necrotic"
+      }
+    ],
+    "MissEffects": []
+  },
+  "Shatter": {
+    "Type": "Spell",
+    "Name": "Shatter",
+    "Target": "Enemy",
+    "Area": 12,
+    "SavingThrow": "Constitution",
+    "SpellAttack": false,
+    "HitEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 3,
+        "DamageDieSize": 8,
+        "DamageBonus": 0,
+        "DamageMultiplier": 1,
+        "DamageType": "Thunder"
+      }
+    ],
+    "MissEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 3,
+        "DamageDieSize": 8,
+        "DamageBonus": 0,
+        "DamageMultiplier": 0.5,
+        "DamageType": "Thunder"
+      }
+    ]
+  },
+  "Stub": {
+    "Type": "Spell",
+    "Name": "Call Lightning",
+    "Target": "Enemy",
+    "Area": 1,
+    "SavingThrow": "None",
+    "SpellAttack": false,
+    "HitEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 1,
+        "DamageDieSize": 8,
+        "DamageBonus": 0,
+        "DamageMultiplier": 1,
+        "DamageType": "Radiant"
+      }
+    ],
+    "MissEffects": []
+  },
+  "Stub": {
+    "Type": "Spell",
+    "Name": "",
+    "Target": "Enemy",
+    "Area": 1,
+    "SavingThrow": "None",
+    "SpellAttack": false,
+    "HitEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 1,
+        "DamageDieSize": 8,
+        "DamageBonus": 0,
+        "DamageMultiplier": 1,
+        "DamageType": "Radiant"
+      }
+    ],
+    "MissEffects": []
+  }
 }

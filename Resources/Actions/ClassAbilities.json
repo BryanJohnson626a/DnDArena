@@ -1,78 +1,78 @@
 {
-   "SecondWind":{
-      "Type":"Special",
-      "Name":"Second Wind",
-      "Target":"SelfInjured",
-      "Effects":[
-         {
-            "Type":"Healing",
-            "HealingDieNum":1,
-            "HealingDieSize":10,
-            "HealingBonus":0,
-            "AddLevelMod":1
-         }
-      ]
-   },
-   "ActionSurge":{
-      "Type":"Special",
-      "Name":"Action Surge",
-      "Target":"Self",
-      "Effects":[
-         {
-            "Type":"ImmediateExtraActions",
-            "ExtraActions":1,
-            "ExtraBonusActions":0
-         }
-      ]
-   },
-   "MultiAttack":{
-      "Type":"MultiAction",
-      "Name":"MultiAttack",
-      "Target":"Enemy",
-      "Actions":[
-         {
-            "Name":"WeaponAttack"
-         },
-         {
-            "Name":"WeaponAttack"
-         }
-      ]
-   },
-   "Rage":{
-      "Type":"Special",
-      "Name":"Rage",
-      "Target":"Self",
-      "Effects":[
-         {
-            "Type":"DamageBonus",
-            "Duration":10,
-            "BonusDamage":2
-         },
-         {
-            "Type":"Resistance",
-            "Duration":10,
-            "ResistanceType": "Slashing"
-         },
-         {
-            "Type":"Resistance",
-            "Duration":10,
-            "ResistanceType": "Piercing"
-         },
-         {
-            "Type":"Resistance",
-            "Duration":10,
-            "ResistanceType": "Bludgeoning"
-         }
-      ]
-   },
-   "Frenzy":{
-      "Type":"MultiAction",
-      "Name":"Frenzy",
-      "Target":"Enemy",
-      "Actions":[
-         {
-            "Name":"WeaponAttack"
-         }
-      ]
-   }
+  "SecondWind": {
+    "Type": "Special",
+    "Name": "Second Wind",
+    "Target": "SelfInjured",
+    "Effects": [
+      {
+        "Type": "Healing",
+        "HealingDieNum": 1,
+        "HealingDieSize": 10,
+        "HealingBonus": 0,
+        "AddLevelMod": 1
+      }
+    ]
+  },
+  "ActionSurge": {
+    "Type": "Special",
+    "Name": "Action Surge",
+    "Target": "Self",
+    "Effects": [
+      {
+        "Type": "ImmediateExtraActions",
+        "ExtraActions": 1,
+        "ExtraBonusActions": 0
+      }
+    ]
+  },
+  "MultiAttack": {
+    "Type": "MultiAction",
+    "Name": "MultiAttack",
+    "Target": "Enemy",
+    "Actions": [
+      {
+        "Name": "WeaponAttack"
+      },
+      {
+        "Name": "WeaponAttack"
+      }
+    ]
+  },
+  "Rage": {
+    "Type": "Special",
+    "Name": "Rage",
+    "Target": "Self",
+    "Effects": [
+      {
+        "Type": "DamageBonus",
+        "Duration": 10,
+        "BonusDamage": 2
+      },
+      {
+        "Type": "Resistance",
+        "Duration": 10,
+        "ResistanceType": "Slashing"
+      },
+      {
+        "Type": "Resistance",
+        "Duration": 10,
+        "ResistanceType": "Piercing"
+      },
+      {
+        "Type": "Resistance",
+        "Duration": 10,
+        "ResistanceType": "Bludgeoning"
+      }
+    ]
+  },
+  "Frenzy": {
+    "Type": "MultiAction",
+    "Name": "Frenzy",
+    "Target": "Enemy",
+    "Actions": [
+      {
+        "Name": "WeaponAttack"
+      }
+    ]
+  }
 }

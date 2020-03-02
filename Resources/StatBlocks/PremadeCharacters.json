@@ -1,215 +1,215 @@
 {
-   "Fighter5":{
-      "Name":"Fighter",
-      "Type":"Humanoid",
-      "HDNum":5,
-      "HDSize":10,
-      "Proficiency":3,
-      "InitiativeBonus":0,
-      "ArmorValue":6,
-      "ShieldValue":2,
-      "AttackBonus":0,
-      "DamageBonus":2,
-      "Strength":18,
-      "Dexterity":15,
-      "Constitution":15,
-      "Intelligence":11,
-      "Wisdom":13,
-      "Charisma":9,
-      "SaveSTR":true,
-      "SaveDEX":false,
-      "SaveCON":true,
-      "SaveINT":false,
-      "SaveWIS":false,
-      "SaveCHA":false,
-      "Crit":19,
-      "Actions":[
-         {
-            "Action":{
-               "Name":"MultiAttack"
-            },
-            "Uses":-1,
-            "KeyStat":"None"
-         },
-         {
-            "Action":{
-               "Name":"Longsword"
-            },
-            "Uses":-1,
-            "KeyStat":"Strength"
-         }
-      ],
-      "BonusActions":[
-         {
-            "Action":{
-               "Name":"ActionSurge"
-            },
-            "Uses":1,
-            "KeyStat":"None"
-         },
-         {
-            "Action":{
-               "Name":"SecondWind"
-            },
-            "Uses":1,
-            "KeyStat":"None"
-         }
-      ]
-   },
-   "Barbarian5":{
-      "Name":"Barbarian",
-      "Type":"Humanoid",
-      "HDNum":5,
-      "HDSize":12,
-      "Proficiency":3,
-      "InitiativeBonus":0,
-      "ArmorValue":3,
-      "ShieldValue":0,
-      "AttackBonus":0,
-      "DamageBonus":0,
-      "Strength":17,
-      "Dexterity":14,
-      "Constitution":16,
-      "Intelligence":9,
-      "Wisdom":13,
-      "Charisma":11,
-      "SaveSTR":true,
-      "SaveDEX":false,
-      "SaveCON":true,
-      "SaveINT":false,
-      "SaveWIS":false,
-      "SaveCHA":false,
-      "Crit":20,
-      "Actions":[
-         {
-            "Action":{
-               "Name":"MultiAttack"
-            },
-            "Uses":-1,
-            "KeyStat":"None"
-         },
-         {
-            "Action":{
-               "Name":"Greatsword"
-            },
-            "Uses":-1,
-            "KeyStat":"Strength"
-         }
-      ],
-      "BonusActions":[
-         {
-            "Action":{
-               "Name":"Rage"
-            },
-            "Uses":1,
-            "KeyStat":"None"
-         },
-         {
-            "Action":{
-               "Name":"Frenzy"
-            },
-            "Uses":2,
-            "KeyStat":"None"
-         }
-      ]
-   },
-   "Cleric5":{
-      "Name":"Cleric",
-      "Type":"Humanoid",
-      "HDNum":5,
-      "HDSize":8,
-      "Proficiency":3,
-      "InitiativeBonus":0,
-      "ArmorValue":8, 
-      "Plus one to compensate for negative dex in heavy armor.":0,
-      "ShieldValue":2,
-      "AttackBonus":0,
-      "DamageBonus":0,
-      "Strength":16,
-      "Dexterity":8,
-      "Constitution":13,
-      "Intelligence":10,
-      "Wisdom":18,
-      "Charisma":12,
-      "SaveSTR":false,
-      "SaveDEX":false,
-      "SaveCON":false,
-      "SaveINT":false,
-      "SaveWIS":false,
-      "SaveCHA":false,
-      "Crit":20,
-      "Actions":[
-         {
-            "Action":{
-               "Name":"CallLightning"
-            },
-            "Uses":2,
-            "KeyStat":"Wisdom"
-         },
-         {
-            "Action":{
-               "Name":"Shatter"
-            },
-            "Uses":3,
-            "KeyStat":"Wisdom"
-         },
-         {
-            "Action":{
-               "Name":"InflictWounds"
-            },
-            "Uses":4,
-            "KeyStat":"Wisdom"
-         },
-         {
-            "Action":{
-               "Name":"SacredFlame5"
-            },
-            "Uses":-1,
-            "KeyStat":"Wisdom"
-         },
-         {
-            "Action":{
-               "Name":"Longsword"
-            },
-            "Uses":-1,
-            "KeyStat":"Strength"
-         }
-      ],
-      "BonusActions":[]
-   },
-   "Stub":{
-      "Name":"",
-      "Type":"Humanoid",
-      "HDNum":0,
-      "HDSize":0,
-      "Proficiency":0,
-      "InitiativeBonus":0,
-      "ArmorValue":0, 
-      "ShieldValue":0,
-      "AttackBonus":0,
-      "DamageBonus":0,
-      "Strength":0,
-      "Dexterity":0,
-      "Constitution":0,
-      "Intelligence":0,
-      "Wisdom":0,
-      "Charisma":0,
-      "SaveSTR":false,
-      "SaveDEX":false,
-      "SaveCON":false,
-      "SaveINT":false,
-      "SaveWIS":false,
-      "SaveCHA":false,
-      "Crit":20,
-      "Actions":[
-         {
-            "Action":{
-               "Name":""
-            },
-            "Uses":-1,
-            "KeyStat":"None"
-         }
-      ],
-      "BonusActions":[]
-   }
+  "Fighter5": {
+    "Name": "Fighter",
+    "Type": "Humanoid",
+    "HDNum": 5,
+    "HDSize": 10,
+    "Proficiency": 3,
+    "InitiativeBonus": 0,
+    "ArmorValue": 6,
+    "ShieldValue": 2,
+    "AttackBonus": 0,
+    "DamageBonus": 2,
+    "Strength": 18,
+    "Dexterity": 15,
+    "Constitution": 15,
+    "Intelligence": 11,
+    "Wisdom": 13,
+    "Charisma": 9,
+    "SaveSTR": true,
+    "SaveDEX": false,
+    "SaveCON": true,
+    "SaveINT": false,
+    "SaveWIS": false,
+    "SaveCHA": false,
+    "Crit": 19,
+    "Actions": [
+      {
+        "Action": {
+          "Name": "MultiAttack"
+        },
+        "Uses": -1,
+        "KeyStat": "None"
+      },
+      {
+        "Action": {
+          "Name": "Longsword"
+        },
+        "Uses": -1,
+        "KeyStat": "Strength"
+      }
+    ],
+    "BonusActions": [
+      {
+        "Action": {
+          "Name": "ActionSurge"
+        },
+        "Uses": 1,
+        "KeyStat": "None"
+      },
+      {
+        "Action": {
+          "Name": "SecondWind"
+        },
+        "Uses": 1,
+        "KeyStat": "None"
+      }
+    ]
+  },
+  "Barbarian5": {
+    "Name": "Barbarian",
+    "Type": "Humanoid",
+    "HDNum": 5,
+    "HDSize": 12,
+    "Proficiency": 3,
+    "InitiativeBonus": 0,
+    "ArmorValue": 3,
+    "ShieldValue": 0,
+    "AttackBonus": 0,
+    "DamageBonus": 0,
+    "Strength": 17,
+    "Dexterity": 14,
+    "Constitution": 16,
+    "Intelligence": 9,
+    "Wisdom": 13,
+    "Charisma": 11,
+    "SaveSTR": true,
+    "SaveDEX": false,
+    "SaveCON": true,
+    "SaveINT": false,
+    "SaveWIS": false,
+    "SaveCHA": false,
+    "Crit": 20,
+    "Actions": [
+      {
+        "Action": {
+          "Name": "MultiAttack"
+        },
+        "Uses": -1,
+        "KeyStat": "None"
+      },
+      {
+        "Action": {
+          "Name": "Greatsword"
+        },
+        "Uses": -1,
+        "KeyStat": "Strength"
+      }
+    ],
+    "BonusActions": [
+      {
+        "Action": {
+          "Name": "Rage"
+        },
+        "Uses": 1,
+        "KeyStat": "None"
+      },
+      {
+        "Action": {
+          "Name": "Frenzy"
+        },
+        "Uses": 2,
+        "KeyStat": "None"
+      }
+    ]
+  },
+  "Cleric5": {
+    "Name": "Cleric",
+    "Type": "Humanoid",
+    "HDNum": 5,
+    "HDSize": 8,
+    "Proficiency": 3,
+    "InitiativeBonus": 0,
+    "ArmorValue": 8,
+    "Plus one to compensate for negative dex in heavy armor.": 0,
+    "ShieldValue": 2,
+    "AttackBonus": 0,
+    "DamageBonus": 0,
+    "Strength": 16,
+    "Dexterity": 8,
+    "Constitution": 13,
+    "Intelligence": 10,
+    "Wisdom": 18,
+    "Charisma": 12,
+    "SaveSTR": false,
+    "SaveDEX": false,
+    "SaveCON": false,
+    "SaveINT": false,
+    "SaveWIS": false,
+    "SaveCHA": false,
+    "Crit": 20,
+    "Actions": [
+      {
+        "Action": {
+          "Name": "CallLightning"
+        },
+        "Uses": 2,
+        "KeyStat": "Wisdom"
+      },
+      {
+        "Action": {
+          "Name": "Shatter"
+        },
+        "Uses": 3,
+        "KeyStat": "Wisdom"
+      },
+      {
+        "Action": {
+          "Name": "InflictWounds"
+        },
+        "Uses": 4,
+        "KeyStat": "Wisdom"
+      },
+      {
+        "Action": {
+          "Name": "SacredFlame5"
+        },
+        "Uses": -1,
+        "KeyStat": "Wisdom"
+      },
+      {
+        "Action": {
+          "Name": "Longsword"
+        },
+        "Uses": -1,
+        "KeyStat": "Strength"
+      }
+    ],
+    "BonusActions": []
+  },
+  "Stub": {
+    "Name": "",
+    "Type": "Humanoid",
+    "HDNum": 0,
+    "HDSize": 0,
+    "Proficiency": 0,
+    "InitiativeBonus": 0,
+    "ArmorValue": 0,
+    "ShieldValue": 0,
+    "AttackBonus": 0,
+    "DamageBonus": 0,
+    "Strength": 0,
+    "Dexterity": 0,
+    "Constitution": 0,
+    "Intelligence": 0,
+    "Wisdom": 0,
+    "Charisma": 0,
+    "SaveSTR": false,
+    "SaveDEX": false,
+    "SaveCON": false,
+    "SaveINT": false,
+    "SaveWIS": false,
+    "SaveCHA": false,
+    "Crit": 20,
+    "Actions": [
+      {
+        "Action": {
+          "Name": ""
+        },
+        "Uses": -1,
+        "KeyStat": "None"
+      }
+    ],
+    "BonusActions": []
+  }
 }

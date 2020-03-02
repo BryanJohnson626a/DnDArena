@@ -11,6 +11,8 @@
 enum ReportType
 {
     Kills,
+    FinishedOff,
+    Falls,
     Deaths,
     DamageDone,
     DamageTaken,

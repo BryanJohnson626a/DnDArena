@@ -22,13 +22,15 @@ public:
 
     int AddActor(std::string_view name, std::shared_ptr<const StatBlock> stat_block);
 
+
+
     [[nodiscard]] int MembersAlive() const;
+    [[nodiscard]] Actor * FirstAlive();
+    [[nodiscard]] ActorPtrs AllAlive();
 
     [[nodiscard]] int MembersConscious() const;
-
-    Actor & FirstAlive();
-
-    Actor & FirstConscious();
+    [[nodiscard]] Actor * FirstConscious();
+    [[nodiscard]] ActorPtrs AllConscious();
 
     std::string Name;
     int Wins;

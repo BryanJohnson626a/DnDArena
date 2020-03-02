@@ -10,7 +10,7 @@
 
 int main()
 {
-    Output::Out().SetLevel(Results);
+    Output::Out().SetLevel(AllActions);
     {
         Arena BG;
         BG.AddTeam("Team A");
@@ -22,16 +22,19 @@ int main()
         for (int i = 0; i < 20; ++i)
         {
             std::stringstream name;
-            name << "Goblin " << i;
+            name << "Goblin " << i + 1;
             BG.AddCombatant(name.str(), "Goblin", 1);
         }
 
         BG.Initialize();
 
-        BG.DoBattles(10000);
+        BG.DoBattles(1);
         BG.Report(KillDeathRatio, "Player");
         BG.Report(Kills, "Player");
+        BG.Report(FinishedOff, "Player");
+        BG.Report(Falls, "Player");
         BG.Report(Deaths, "Player");
+        BG.Report(KillDeathRatio, "Goblin");
     }
     return 0;
 }

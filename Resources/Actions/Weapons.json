@@ -5,7 +5,7 @@
     "Target": "Enemy",
     "DamageDiceNum": 1,
     "DamageDiceSize": 1,
-    "DamageType":"Bludgeoning"
+    "DamageType": "Bludgeoning"
   },
   "Longsword": {
     "Type": "WeaponAttack",
@@ -13,7 +13,7 @@
     "Target": "Enemy",
     "DamageDiceNum": 1,
     "DamageDiceSize": 8,
-    "DamageType":"Slashing"
+    "DamageType": "Slashing"
   },
   "Greatsword": {
     "Type": "WeaponAttack",
@@ -21,7 +21,7 @@
     "Target": "Enemy",
     "DamageDiceNum": 2,
     "DamageDiceSize": 6,
-    "DamageType":"Slashing"
+    "DamageType": "Slashing"
   },
   "Greataxe": {
     "Type": "WeaponAttack",
@@ -29,7 +29,7 @@
     "Target": "Enemy",
     "DamageDiceNum": 1,
     "DamageDiceSize": 12,
-    "DamageType":"Slashing"
+    "DamageType": "Slashing"
   },
   "Scimitar": {
     "Type": "WeaponAttack",
@@ -37,7 +37,7 @@
     "Target": "Enemy",
     "DamageDiceNum": 1,
     "DamageDiceSize": 6,
-    "DamageType":"Slashing"
+    "DamageType": "Slashing"
   },
   "Stub": {
     "Type": "WeaponAttack",
@@ -45,6 +45,6 @@
     "Target": "Enemy",
     "DamageDiceNum": 1,
     "DamageDiceSize": 1,
-    "DamageType":""
+    "DamageType": ""
   }
 }

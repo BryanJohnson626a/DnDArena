@@ -97,16 +97,69 @@ std::ostream & operator<<(std::ostream & out, const Group & group)
         switch (Member.GetDeathState())
         {
 
-            case Conscious:out << Member << " (" << Member.CurrentHP() << "/" << Member.MaxHP() << " HP)";
+            case Conscious:
+                out << Member << " (" << Member.CurrentHP() << "/" << Member.MaxHP() << " HP)";
                 break;
-            case Stable:out << Member << "(Stable)";
+            case Stable:
+                out << Member << "(Stable)";
                 break;
             case Dying:
                 out << Member << "(Dying " << Member.SuccessfulDeathSaves << "S:" << Member.FailedDeathSaves << "F)";
                 break;
-            case Dead:out << Member << "(Dead)";
+            case Dead:
+                out << Member << "(Dead)";
                 break;
         }
+    }
+    return out;
+}
+
+std::ostream & operator<<(std::ostream & out, enum DamageType damage_type)
+{
+    switch (damage_type)
+    {
+        case Slashing:
+            out << "slashing";
+            break;
+        case Bludgeoning:
+            out << "bludgeoning";
+            break;
+        case Piercing:
+            out << "piercing";
+            break;
+        case Fire:
+            out << "fire";
+            break;
+        case Cold:
+            out << "cold";
+            break;
+        case Lightning:
+            out << "lightning";
+            break;
+        case Thunder:
+            out << "thunder";
+            break;
+        case Acid:
+            out << "acid";
+            break;
+        case Poison:
+            out << "poison";
+            break;
+        case Necrotic:
+            out << "necrotic";
+            break;
+        case Radiant:
+            out << "radiant";
+            break;
+        case Psychic:
+            out << "psychic";
+            break;
+        case Force:
+            out << "force";
+            break;
+        default:
+            out << "invalid damage type";
+            break;
     }
     return out;
 }

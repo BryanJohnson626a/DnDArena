@@ -89,20 +89,22 @@ class Actor
 public:
     struct Statistics
     {
-        int Kills;
-        int Deaths;
-        int DamageDone;
-        int DamageTaken;
-        int AttacksLanded;
-        int AttacksMissed;
-        int AttacksReceived;
-        int AttacksAvoided;
-        int CritsLanded;
-        int CritsReceived;
-        int ForcedSaves;
-        int ForcedSavesMade;
-        int SavesDone;
-        int SavesMade;
+        int Kills; // Times this actor has killed another actor.
+        int Downs; // Times this actor has knocked another actor unconscious.
+        int Deaths; // Times this actor has died.
+        int Falls; // Times this actor has been knocked unconscious
+        int DamageDone; // How much damage this actor has caused.
+        int DamageTaken; // How much damage has been caused to this actor.
+        int AttacksLanded; // How many weapon or spell attacks this actor has hit with.
+        int AttacksMissed; // How many weapon or spell attacks this actor has missed with.
+        int AttacksReceived; // How many weapon or spell attacks this actor has been hit by.
+        int AttacksAvoided; // How many weapon or spell attacks this actor has been missed by.
+        int CritsLanded; // How many critical weapon or spell attacks this actor has made.
+        int CritsReceived; // How many critical weapon or spell attacks have been made against this actor.
+        int ForcedSavesFailed; // How many of the saving throws that this actor forced another actor to make were failures.
+        int ForcedSavesMade; // How many of the saving throws that this actor forced another actor to make were successful.
+        int SavesFailed; // How many saving throws made by this actor wew failures.
+        int SavesMade; // How many saving throws made by this actor were successful.
     };
     // Action representative that tracks active usage.
     struct ActionRep
@@ -128,7 +130,7 @@ public:
 
     void TakeBonusAction();
 
-    int TakeDamage(int damage, DamageType damage_type);
+    int TakeDamage(int damage, DamageType damage_type, Actor & damager);
 
     void DeathSave();
 

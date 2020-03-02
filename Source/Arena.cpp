@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <iomanip>
 
 #include "Arena.h"
 #include "Actor.h"
@@ -154,9 +155,13 @@ float Arena::Report(enum ReportType type, std::string_view target)
                 found = true;
                 switch (type)
                 {
-                    case Kills:
+                    case FinishedOff:
                         total += (float) a.InfoStats.Kills;
-                        OUT_RESULTS << a.Name << " killed " << a.InfoStats.Kills << " enemies." << std::endl;
+                        OUT_RESULTS << a.Name << " finished off " << a.InfoStats.Kills << " enemies." << std::endl;
+                        break;
+                    case Kills:
+                        total += (float) a.InfoStats.Downs;
+                        OUT_RESULTS << a.Name << " killed " << a.InfoStats.Downs << " enemies." << std::endl;
                         break;
                     case Deaths:
                         total += (float) a.InfoStats.Deaths;
@@ -203,9 +208,25 @@ float Arena::Report(enum ReportType type, std::string_view target)
                                     << std::endl;
                         break;
                     case KillDeathRatio:
-                        total += float(a.InfoStats.Kills) / float(a.InfoStats.Deaths);
-                        OUT_RESULTS << a.Name << "'s K/D was " << float(a.InfoStats.Kills) / float(a.InfoStats.Deaths)
-                                    << "." << std::endl;
+                        if (a.InfoStats.Deaths > 0)
+                        {
+                            float kd = float(a.InfoStats.Kills) / float(a.InfoStats.Deaths);
+                            total += kd;
+                            if (kd > 1)
+                            {
+                                OUT_RESULTS << a.Name << "'s K/D was " << std::setprecision(2) << kd << "/1."
+                                            << std::endl;
+                            }
+                            else
+                            {
+                                OUT_RESULTS << a.Name << "'s K/D was 1/" << std::setprecision(2) << 1.f / kd << "."
+                                            << std::endl;
+                            }
+                        }
+                        else if (a.InfoStats.Kills > 0)
+                        { OUT_RESULTS << a.Name << "'s K/D was perfect." << std::endl; }
+                        else
+                        { OUT_RESULTS << a.Name << "'s K/D was nothing." << std::endl; }
                         break;
                     default:
                     OUT_WARNING << "Invalid report request: " << type << WARNING_END

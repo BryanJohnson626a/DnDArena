@@ -150,20 +150,28 @@ Actor::ActionRep * Actor::ChooseAction(std::vector<ActionRep> & actions) const
     return nullptr;
 }
 
-int Actor::TakeDamage(int damage, DamageType damage_type)
+int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
 {
     if (HasResistance(damage_type))
         damage /= 2;
+
+    HP -= damage;
+
+    damager.InfoStats.DamageDone += damage;
+    InfoStats.DamageTaken += damage;
 
     if (State == Dying)
     {
         FailedDeathSaves += 2;
         DeathCheck();
+        if (State == Dead)
+        {
+            ++InfoStats.Deaths;
+            ++damager.InfoStats.Kills;
+        }
     }
     else
     {
-        HP -= damage;
-        InfoStats.DamageTaken += damage;
         if (HP <= 0)
         {
             if (-HP > HPMax)
@@ -171,14 +179,22 @@ int Actor::TakeDamage(int damage, DamageType damage_type)
                 HP = 0;
                 State = DeathState::Dead;
                 OUT_ALL << "        " << Name << " dies instantly!" << std::endl;
+
+                ++InfoStats.Deaths;
+                ++damager.InfoStats.Kills;
             }
             else
             {
                 HP = 0;
                 State = DeathState::Dying;
                 OUT_ALL << "        " << Name << " has fallen!" << std::endl;
+
+                ++InfoStats.Falls;
+                ++damager.InfoStats.Downs;
             }
         }
+        else
+            OUT_ALL << "        " << Name << " has " << HP << "/" << HPMax << " HP remaning." << std::endl;
     }
     return damage;
 }

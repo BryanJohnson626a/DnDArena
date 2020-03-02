@@ -19,12 +19,37 @@ ActorPtrs Action::ChooseTargets(Actor & user) const
     ActorPtrs targets;
     if (Target == "Self" || (Target == "SelfInjured" && user.IsInjured()))
         targets.push_back(&user);
-    else if (Target == "Enemy")
+    else if (Target == "Enemy" && Area == 1)
     {
-        Actor & target = user.CurrentArena.OtherGroup(user.Team).FirstConscious();
-        if (target.Alive())
-            targets.push_back(&target);
+        // Get a conscious target.
+        Actor * target = user.CurrentArena.OtherGroup(user.Team).FirstConscious();
+
+        // Or at least an alive one.
+        if (target == nullptr)
+            target = user.CurrentArena.OtherGroup(user.Team).FirstAlive();
+
+        // If nobody is alive, no targets.
+        if (target != nullptr)
+            targets.push_back(target);
     }
+    else if (Target == "Enemy" && Area > 1)
+    {
+        // Get some conscious targets
+        targets = user.CurrentArena.OtherGroup(user.Team).AllConscious();
+
+        // Trim down the list if we have too many.
+        if (targets.size() > Area)
+            targets.resize(Area);
+        else if (targets.size() < Area)
+        {
+            // Add anyone else still alive if we don't have enough.
+            ActorPtrs additional_targets = user.CurrentArena.OtherGroup(user.Team).AllAlive();
+            for (Actor * additional_target : additional_targets)
+                if (!additional_target->Conscious())
+                    targets.emplace_back(additional_target);
+        }
+    }
+
     return targets;
 }
 
@@ -88,14 +113,13 @@ bool WeaponAttack::DoAction(Actor & user, Stat KeyStat) const
 
         int damage = DamageDie->RollMod(stat_mod + user.GetDamageBonus(), DamageDiceNum * 2);
         if (target.HasResistance(DamageType))
-            OUT_ALL << " reduced to " << damage / 2;
-        OUT_ALL << " damage." << std::endl;
+            OUT_ALL << " resisted to " << damage / 2;
+        OUT_ALL << " " << DamageType << " damage." << std::endl;
 
-        if (damage < 0) OUT_ERROR << "Negative damage dealt." << ERROR_END;
+        if (damage < 0)
+        OUT_ERROR << "Negative damage dealt." << ERROR_END;
 
-        damage = target.TakeDamage(damage, DamageType);
-        user.InfoStats.DamageDone += damage;
-        if (!target.Alive()) ++user.InfoStats.Kills;
+        damage = target.TakeDamage(damage, DamageType, user);
     }
     else if ((roll + attack_mod >= target.Stats->AC || roll == 20) && roll != 1)
     {
@@ -107,13 +131,12 @@ bool WeaponAttack::DoAction(Actor & user, Stat KeyStat) const
 
         if (target.HasResistance(DamageType))
             OUT_ALL << " reduced to " << damage / 2;
-        OUT_ALL << " damage." << std::endl;
+        OUT_ALL << " " << DamageType << " damage." << std::endl;
 
-        if (damage < 0) OUT_ERROR << "Negative damage dealt." << ERROR_END;
+        if (damage < 0)
+        OUT_ERROR << "Negative damage dealt." << ERROR_END;
 
-        damage = target.TakeDamage(damage, DamageType);
-        user.InfoStats.DamageDone += damage;
-        if (!target.Alive()) ++user.InfoStats.Kills;
+        damage = target.TakeDamage(damage, DamageType, user);
     }
     else
     {
@@ -143,22 +166,16 @@ bool SpecialAction::DoAction(Actor & user, Stat KeyStat) const
     if (targets.empty())
         return false;
 
-    OUT_ALL << "    " << user.Name << " uses " << Name;
-    if (targets[0]->Name != user.Name || targets.size() > 1)
+    for (auto target : targets)
     {
-        if (!targets.empty())
-            OUT_ALL << " on ";
-        for (int i = 0; i < targets.size(); ++i)
-        {
-            if (i > 0)
-                OUT_ALL << ", ";
-            OUT_ALL << targets[i]->Name;
-        }
-    }
-    OUT_ALL << "." << std::endl;
+        OUT_ALL << "    " << user.Name << " uses " << Name;
+        if (targets.size() > 1 || target != &user)
+            OUT_ALL << " on " << target->Name;
+        OUT_ALL << "." << std::endl;
 
-    for (Effect * e : Effects)
-        e->DoEffect(user, targets);
+        for (Effect * e : Effects)
+            e->DoEffect(user, target, false);
+    }
 
     return true;
 }
@@ -190,84 +207,84 @@ bool Spell::DoAction(Actor & user, Stat KeyStat) const
     if (targets.empty())
         return false;
 
-    ActorPtrs actors_hit;
-    ActorPtrs actors_missed;
-
-    OUT_ALL << "    " << user.Name << " casts " << Name;
-    if (targets[0]->Name != user.Name || targets.size() > 1)
-    {
-        if (!targets.empty())
-            OUT_ALL << " on ";
-        for (int i = 0; i < targets.size(); ++i)
-        {
-            if (i > 0)
-                OUT_ALL << ", ";
-            OUT_ALL << targets[i]->Name;
-        }
-    }
-    OUT_ALL << ".";
-
     for (Actor * target : targets)
     {
+        OUT_ALL << "    " << user.Name << " casts " << Name;
+        if (targets.size() > 1 || target != &user)
+            OUT_ALL << " on " << target->Name;
+        OUT_ALL << "." << std::endl;
+
         if (SavingThrow != None)
         {
             if (!target->Conscious() && (SavingThrow == Strength || SavingThrow == Dexterity))
             {
-                actors_hit.emplace_back(target);
-                OUT_ALL << std::endl;
+                OUT_ALL << "        " << target->Name << " can't move." << std::endl;
+                for (Effect * e : HitEffects)
+                    e->DoEffect(user, target, false);
+
+                target->InfoStats.SavesFailed++;
+                user.InfoStats.ForcedSavesFailed++;
             }
             else
             {
                 int dc = 8 + user.GetStatMod(KeyStat) + user.Stats->Proficiency;
 
-                OUT_ALL << " Rolled ";
+                OUT_ALL << "        " << target->Name << " rolled ";
                 int roll = D20.RollMod(target->GetSave(SavingThrow));
                 OUT_ALL << " against DC " << dc;
 
                 if (roll < dc)
                 {
+                    target->InfoStats.SavesFailed++;
+                    user.InfoStats.ForcedSavesFailed++;
+
                     OUT_ALL << " Failed." << std::endl;
-                    actors_hit.emplace_back(target);
+                    for (Effect * e : HitEffects)
+                        e->DoEffect(user, target, false);
                 }
                 else
                 {
+                    target->InfoStats.SavesMade++;
+                    user.InfoStats.ForcedSavesMade++;
+
                     OUT_ALL << " Saved!" << std::endl;
-                    actors_missed.emplace_back(target);
+                    for (Effect * e : MissEffects)
+                        e->DoEffect(user, target, false);
                 }
             }
         }
         else if (SpellAttack)
         {
-            OUT_ALL << " Rolled ";
+            OUT_ALL << "        " << user.Name << " rolled ";
             int roll = D20.RollMod(user.GetStatMod(KeyStat) + user.Stats->Proficiency);
             OUT_ALL << " vs " << target->Stats->AC << " AC";
 
-            if (roll < target->Stats->AC)
+            if (roll == 20 && roll >= target->Stats->AC)
             {
-                OUT_ALL << " Miss!" << std::endl;
-                actors_missed.emplace_back(target);
+                OUT_ALL << " Crit!" << std::endl;
+                for (Effect * e : HitEffects)
+                    e->DoEffect(user, target, true);
+            }
+            if (roll >= target->Stats->AC)
+            {
+                OUT_ALL << " Hit." << std::endl;
+                for (Effect * e : HitEffects)
+                    e->DoEffect(user, target, false);
             }
             else
             {
-                OUT_ALL << std::endl;
-                actors_hit.emplace_back(target);
+                OUT_ALL << " Miss!" << std::endl;
+                for (Effect * e : MissEffects)
+                    e->DoEffect(user, target, false);
             }
         }
         else
         {
             OUT_ALL << std::endl;
-            actors_hit = targets;
+            for (Effect * e : HitEffects)
+                e->DoEffect(user, target, false);
         }
     }
-
-    if (targets.empty())
-        OUT_ALL << std::endl;
-
-    for (Effect * e : HitEffects)
-        e->DoEffect(user, actors_hit);
-
-    for (Effect * e : MissEffects)
-        e->DoEffect(user, actors_missed);
 
     return true;
 }

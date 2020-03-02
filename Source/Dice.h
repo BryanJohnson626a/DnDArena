@@ -34,14 +34,14 @@ public:
      * Roll the die once.
      * @return The result of the die roll.
      */
-    int Roll();
+    [[nodiscard]] int Roll();
 
     /**
      * Roll the die multiple times.
      * @param times How many times to roll.
      * @return The total of all dice rolled.
      */
-    int Roll(int times);
+    [[nodiscard]] int Roll(int times);
 
     /**
      * Roll the die multiple times and keep only some.
@@ -50,11 +50,11 @@ public:
      * @param low If true, keeps the lowest dice instead of the highest.
      * @return The total of all dice rolled that were kept.
      */
-    int Roll(int times, int keep, bool low = false);
+    [[nodiscard]] int Roll(int times, int keep, bool low = false);
 
-    int RollMod(int bonus, int times = 1, int keep = 0, bool low = false);
+    [[nodiscard]] int RollMod(int bonus, int times = 1, int keep = 0, bool low = false);
 
-    static Die * Get(int size);
+    [[nodiscard]] static Die * Get(int size);
 
     const int Low, High;
 

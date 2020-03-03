@@ -8,21 +8,26 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <forward_list>
 
 #include "Types.h"
-
-class Action;
-
-class Die;
 
 // Instance of an action for a Stat Block.
 // Uses and Key Stat can be different for
 // different creatures using the same action.
-struct ActionInstance
+class ActionInstance
 {
+public:
     std::shared_ptr<const Action> Action;
     int Uses;
     Stat KeyStat{None};
+};
+
+class RiderEffect
+{
+public:
+    Effect * Effect;
+    int Uses;
 };
 
 /**
@@ -34,6 +39,8 @@ struct StatBlock
     void CalculateDerivedStats();
 
     std::string Name;
+    bool Heroic;
+    SizeCategory Size;
     std::string Type;
 
     // Intrinsic Stats
@@ -71,10 +78,8 @@ struct StatBlock
             INTSaveMod, WISSaveMod, CHASaveMod;
 
     std::vector<ActionInstance> Actions;
-    float ActionsTotalWeight;
     std::vector<ActionInstance> BonusActions;
-    float BonusActionsTotalWeight;
-
+    std::vector<RiderEffect> HitRiders;
 
     static std::shared_ptr<const StatBlock> Get(const std::string_view & name);
 
@@ -89,80 +94,61 @@ class Actor
 public:
     struct Statistics
     {
-        int Kills; // Times this actor has killed another actor.
-        int Downs; // Times this actor has knocked another actor unconscious.
-        int Deaths; // Times this actor has died.
-        int Falls; // Times this actor has been knocked unconscious
-        int DamageDone; // How much damage this actor has caused.
-        int DamageTaken; // How much damage has been caused to this actor.
-        int AttacksLanded; // How many weapon or spell attacks this actor has hit with.
-        int AttacksMissed; // How many weapon or spell attacks this actor has missed with.
-        int AttacksReceived; // How many weapon or spell attacks this actor has been hit by.
-        int AttacksAvoided; // How many weapon or spell attacks this actor has been missed by.
-        int CritsLanded; // How many critical weapon or spell attacks this actor has made.
-        int CritsReceived; // How many critical weapon or spell attacks have been made against this actor.
-        int ForcedSavesFailed; // How many of the saving throws that this actor forced another actor to make were failures.
-        int ForcedSavesMade; // How many of the saving throws that this actor forced another actor to make were successful.
-        int SavesFailed; // How many saving throws made by this actor wew failures.
-        int SavesMade; // How many saving throws made by this actor were successful.
-    };
-    // Action representative that tracks active usage.
-    struct ActionRep
-    {
-        const ActionInstance & Inst;
-        int UsesRemaining;
-    };
-    struct EffectRep
-    {
-        const OngoingEffect * effect;
-        int duration_remaining;
+        long long Kills; // Times this actor has killed another actor.
+        long long KOs; // Times this actor has knocked another actor unconscious.
+        long long Deaths; // Times this actor has died.
+        long long KOed; // Times this actor has been knocked unconscious
+        long long DamageDone; // How much damage this actor has caused.
+        long long DamageTaken; // How much damage has been caused to this actor.
+        long long AttacksLanded; // How many weapon or spell attacks this actor has hit with.
+        long long AttacksMissed; // How many weapon or spell attacks this actor has missed with.
+        long long AttacksReceived; // How many weapon or spell attacks this actor has been hit by.
+        long long AttacksAvoided; // How many weapon or spell attacks this actor has been missed by.
+        long long CritsLanded; // How many critical weapon or spell attacks this actor has made.
+        long long CritsReceived; // How many critical weapon or spell attacks have been made against this actor.
+        long long ForcedSavesFailed; // How many of the saving throws that this actor forced another actor to make were failures.
+        long long ForcedSavesMade; // How many of the saving throws that this actor forced another actor to make were successful.
+        long long SavesFailed; // How many saving throws made by this actor wew failures.
+        long long SavesMade; // How many saving throws made by this actor were successful.
     };
 
     Actor(std::string_view name, std::shared_ptr<const StatBlock> stat_block, int team, Arena & arena);
+
+    ~Actor();
 
     void Initialize();
 
     void ResetInfo();
 
-    void DoRound();
+    void TakeTurn();
 
-    void TakeAction();
+    bool TakeAction();
 
-    void TakeBonusAction();
+    bool TakeBonusAction();
 
     int TakeDamage(int damage, DamageType damage_type, Actor & damager);
 
     void DeathSave();
 
-    [[nodiscard]] ActionRep * ChooseAction(std::vector<ActionRep> & actions) const;
-
+    [[nodiscard]] ActionInstance * ChooseAction(ActionList & actions) const;
     [[nodiscard]] DeathState GetDeathState() const;
-
     [[nodiscard]] bool Alive() const;
-
     [[nodiscard]] bool Conscious() const;
-
     [[nodiscard]] int CurrentHP() const;
-
     [[nodiscard]] int MaxHP() const;
-
     [[nodiscard]] bool IsInjured() const;
-
     [[nodiscard]] const Statistics & Info();
-
     [[nodiscard]] int GetStatMod(enum Stat stat) const;
-
     [[nodiscard]] int GetDamageBonus() const;
-
     [[nodiscard]] bool HasResistance(DamageType damage_type) const;
+    [[nodiscard]] int GetSave(Stat stat);
+    [[nodiscard]] bool CanConcentrate() const;
 
     void AddResistance(DamageType damage_type);
-
     void RemoveResistance(DamageType damage_type);
 
-    [[nodiscard]]int GetSave(Stat stat);
-
-    void AddEffect(const OngoingEffect * ongoing_effect);
+    bool AddOngoingAction(const Action * action, ActorPtrs hit_targets,
+                          ActorPtrs missed_targets, bool concentration = false);
 
     /**
      * Restores health to the actor, limited by max HP.
@@ -175,19 +161,20 @@ public:
     std::shared_ptr<const StatBlock> Stats;
     int Initiative{0};
     int Team{0};
-    std::vector<ActionRep> ActionQueue;
-    std::vector<ActionRep> BonusActionQueue;
+    ActionList ActionQueue;
+    ActionList BonusActionQueue;
+    std::vector<RiderEffect> HitRiders;
     int SuccessfulDeathSaves{0}, FailedDeathSaves{0};
     Statistics InfoStats{};
     Arena & CurrentArena;
     int TempDamageBonus = 0;
+    OngoingAction * ConcentrationSpell{nullptr};
 private:
     int TempResistance[DamageTypesMax]{0};
-    std::vector<EffectRep> OngoingEffects;
+    std::vector<OngoingAction *> OngoingActions;
     int HP{}, HPMax{};
     DeathState State{DeathState::Conscious};
 
     void DeathCheck();
 
-    void FillActionQueues();
 };

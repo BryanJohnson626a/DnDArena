@@ -6,6 +6,8 @@
     "Area": 1,
     "SavingThrow": "Dexterity",
     "SpellAttack": false,
+    "Duration": 0,
+    "Concentration": false,
     "HitEffects": [
       {
         "Type": "Damage",
@@ -25,6 +27,8 @@
     "Area": 1,
     "SavingThrow": "Dexterity",
     "SpellAttack": false,
+    "Duration": 0,
+    "Concentration": false,
     "HitEffects": [
       {
         "Type": "Damage",
@@ -44,6 +48,8 @@
     "Area": 1,
     "SavingThrow": "Dexterity",
     "SpellAttack": false,
+    "Duration": 0,
+    "Concentration": false,
     "HitEffects": [
       {
         "Type": "Damage",
@@ -63,6 +69,8 @@
     "Area": 1,
     "SavingThrow": "Dexterity",
     "SpellAttack": false,
+    "Duration": 0,
+    "Concentration": false,
     "HitEffects": [
       {
         "Type": "Damage",
@@ -82,6 +90,8 @@
     "Area": 1,
     "SavingThrow": "None",
     "SpellAttack": true,
+    "Duration": 0,
+    "Concentration": false,
     "HitEffects": [
       {
         "Type": "Damage",
@@ -101,6 +111,8 @@
     "Area": 12,
     "SavingThrow": "Constitution",
     "SpellAttack": false,
+    "Duration": 0,
+    "Concentration": false,
     "HitEffects": [
       {
         "Type": "Damage",
@@ -122,24 +134,56 @@
       }
     ]
   },
-  "Stub": {
+  "CallLightning": {
     "Type": "Spell",
     "Name": "Call Lightning",
-    "Target": "Enemy",
+    "Target": "Self",
     "Area": 1,
     "SavingThrow": "None",
     "SpellAttack": false,
+    "Duration": 100,
+    "Concentration": true,
     "HitEffects": [
       {
-        "Type": "Damage",
-        "DamageDieNum": 1,
-        "DamageDieSize": 8,
-        "DamageBonus": 0,
-        "DamageMultiplier": 1,
-        "DamageType": "Radiant"
+        "Type": "UsableAction",
+        "Action": {
+          "Name": "CallLightningBonus"
+        },
+        "Uses": -1,
+        "ActionType": "Bonus"
       }
     ],
     "MissEffects": []
+  },
+  "CallLightningBonus": {
+    "Type": "Spell",
+    "Name": "Call Lightning",
+    "Target": "Enemy",
+    "Area": 4,
+    "SavingThrow": "Dexterity",
+    "SpellAttack": false,
+    "Duration": 0,
+    "Concentration": false,
+    "HitEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 3,
+        "DamageDieSize": 10,
+        "DamageBonus": 0,
+        "DamageMultiplier": 1,
+        "DamageType": "Lightning"
+      }
+    ],
+    "MissEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 3,
+        "DamageDieSize": 10,
+        "DamageBonus": 0,
+        "DamageMultiplier": 0.5,
+        "DamageType": "Lightning"
+      }
+    ]
   },
   "Stub": {
     "Type": "Spell",
@@ -148,6 +192,8 @@
     "Area": 1,
     "SavingThrow": "None",
     "SpellAttack": false,
+    "Duration": 0,
+    "Concentration": false,
     "HitEffects": [
       {
         "Type": "Damage",
@@ -155,7 +201,7 @@
         "DamageDieSize": 8,
         "DamageBonus": 0,
         "DamageMultiplier": 1,
-        "DamageType": "Radiant"
+        "DamageType": ""
       }
     ],
     "MissEffects": []

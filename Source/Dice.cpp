@@ -143,7 +143,9 @@ int Die::RollMod(int bonus, int times, int keep, bool low)
 
     if (dice_output && bonus > 0)
         OUT_ALL << "+" << bonus;
-    if (dice_output && (times > 1 || bonus > 0))
+    if (dice_output && bonus < 0)
+        OUT_ALL << bonus;
+    if (dice_output && (times > 1 || bonus != 0))
     OUT_ALL << "=" << roll + bonus;
     return roll + bonus;
 }

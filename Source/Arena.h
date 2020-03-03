@@ -10,9 +10,9 @@
 
 enum ReportType
 {
+    KOs,
     Kills,
-    FinishedOff,
-    Falls,
+    KOed,
     Deaths,
     DamageDone,
     DamageTaken,
@@ -23,7 +23,8 @@ enum ReportType
     CritsLanded,
     CritsReceived,
     SurvivalRate,
-    KillDeathRatio,
+    KOsKOedRatio,
+    KDRatio,
 };
 
 class Arena

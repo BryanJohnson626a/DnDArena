@@ -10,31 +10,39 @@
 
 int main()
 {
-    Output::Out().SetLevel(AllActions);
     {
+        Output::Out().SetLevel(Results);
         Arena BG;
         BG.AddTeam("Team A");
-        BG.AddCombatant("Player Alice", "Fighter5", 0);
+        BG.AddCombatant("Player Alice", "BattleMasterFighter5", 0);
         BG.AddCombatant("Player Bob", "Barbarian5", 0);
         BG.AddCombatant("Player Carol", "Cleric5", 0);
 
         BG.AddTeam("Team B");
-        for (int i = 0; i < 20; ++i)
+        std::string enemy_type = "Ogre";
+        for (int i = 0; i < 10; ++i)
         {
             std::stringstream name;
-            name << "Goblin " << i + 1;
-            BG.AddCombatant(name.str(), "Goblin", 1);
+            name << enemy_type << " " << i + 1;
+            BG.AddCombatant(name.str(), enemy_type, 1);
         }
 
         BG.Initialize();
 
-        BG.DoBattles(1);
-        BG.Report(KillDeathRatio, "Player");
+        BG.DoBattles(10000);
+        //BG.Report(KOsKOedRatio, "Player");
+        //BG.Report(KDRatio, "Player");
+        BG.Report(KOs, "Player");
+        BG.Report(KOed, "Player");
         BG.Report(Kills, "Player");
-        BG.Report(FinishedOff, "Player");
-        BG.Report(Falls, "Player");
         BG.Report(Deaths, "Player");
-        BG.Report(KillDeathRatio, "Goblin");
+        BG.Report(DamageDone, "Alice");
+        BG.Report(DamageDone, "Bob");
+        BG.Report(DamageDone, "Carol");
+        BG.Report(DamageDone, enemy_type);
+
+        Output::Out().SetLevel(NoOutput);
+
     }
     return 0;
 }

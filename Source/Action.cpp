@@ -47,6 +47,10 @@ ActorPtrs Action::ChooseTargets(Actor & user) const
             for (Actor * additional_target : additional_targets)
                 if (!additional_target->Conscious())
                     targets.emplace_back(additional_target);
+
+            // Trim the new list down if needed.
+            if (targets.size() > Area)
+                targets.resize(Area);
         }
     }
 
@@ -80,6 +84,14 @@ std::shared_ptr<const Action> Action::GetWeaponAttackProxy()
     return WeaponAttackProxy;
 }
 
+Action::~Action()
+{
+    for (Effect * e : HitEffects)
+        delete e;
+    for (Effect * e : MissEffects)
+        delete e;
+}
+
 bool WeaponAttack::DoAction(Actor & user, Stat KeyStat) const
 {
     ActorPtrs targets = ChooseTargets(user);
@@ -101,17 +113,38 @@ bool WeaponAttack::DoAction(Actor & user, Stat KeyStat) const
         roll = D20.Roll();
     OUT_ALL << "+" << attack_mod << "=" << roll + attack_mod << " vs " << target.Stats->AC << " AC ";
 
-    if (roll >= user.Stats->Crit && roll + attack_mod >= target.Stats->AC)
+    if ((roll == 20 || roll + attack_mod >= target.Stats->AC) && roll != 1)
     {
-        // crit
-        target.InfoStats.CritsReceived++;
-        user.InfoStats.CritsLanded++;
+
         target.InfoStats.AttacksReceived++;
         user.InfoStats.AttacksLanded++;
 
-        OUT_ALL << "critical hit dealing ";
+        int dice_rolled_mult = 1;
+        bool crit = false;
 
-        int damage = DamageDie->RollMod(stat_mod + user.GetDamageBonus(), DamageDiceNum * 2);
+        // Larger creatures use bigger weapons.
+        if (user.Stats->Size > Medium)
+        {
+            if (user.Stats->Size == Large)
+                dice_rolled_mult *= 2;
+            else if (user.Stats->Size == Huge)
+                dice_rolled_mult *= 3;
+            else if (user.Stats->Size == Gargantuan)
+                dice_rolled_mult *= 4;
+        }
+
+        if (roll >= user.Stats->Crit && roll + attack_mod >= target.Stats->AC)
+        {
+            // crit
+            crit = true;
+            target.InfoStats.CritsReceived++;
+            user.InfoStats.CritsLanded++;
+            OUT_ALL << "critical hit dealing ";
+            dice_rolled_mult *= 2;
+        }
+
+        int damage = DamageDie->RollMod(stat_mod + user.GetDamageBonus(), DamageDiceNum * dice_rolled_mult);
+
         if (target.HasResistance(DamageType))
             OUT_ALL << " resisted to " << damage / 2;
         OUT_ALL << " " << DamageType << " damage." << std::endl;
@@ -120,23 +153,12 @@ bool WeaponAttack::DoAction(Actor & user, Stat KeyStat) const
         OUT_ERROR << "Negative damage dealt." << ERROR_END;
 
         damage = target.TakeDamage(damage, DamageType, user);
-    }
-    else if ((roll + attack_mod >= target.Stats->AC || roll == 20) && roll != 1)
-    {
-        // hit
-        target.InfoStats.AttacksReceived++;
-        user.InfoStats.AttacksLanded++;
 
-        int damage = DamageDie->RollMod(stat_mod + user.GetDamageBonus(), DamageDiceNum);
-
-        if (target.HasResistance(DamageType))
-            OUT_ALL << " reduced to " << damage / 2;
-        OUT_ALL << " " << DamageType << " damage." << std::endl;
-
-        if (damage < 0)
-        OUT_ERROR << "Negative damage dealt." << ERROR_END;
-
-        damage = target.TakeDamage(damage, DamageType, user);
+        for (auto & hit_rider : user.HitRiders)
+        {
+            hit_rider.Effect->DoEffect(user, &target, crit, KeyStat);
+            --hit_rider.Uses;
+        }
     }
     else
     {
@@ -173,27 +195,23 @@ bool SpecialAction::DoAction(Actor & user, Stat KeyStat) const
             OUT_ALL << " on " << target->Name;
         OUT_ALL << "." << std::endl;
 
-        for (Effect * e : Effects)
-            e->DoEffect(user, target, false);
+        for (Effect * e : HitEffects)
+            e->DoEffect(user, target, false, KeyStat);
     }
 
-    return true;
-}
+    user.AddOngoingAction(this, targets, ActorPtrs(), false);
 
-SpecialAction::~SpecialAction()
-{
-    for (Effect * e : Effects)
-        delete e;
+    return true;
 }
 
 bool AttackProxy::DoAction(Actor & user, Stat KeyStat) const
 {
     for (const auto & ActionRep : user.ActionQueue)
     {
-        auto action = dynamic_cast<const WeaponAttack *>(ActionRep.Inst.Action.get());
+        auto action = dynamic_cast<const WeaponAttack *>(ActionRep.Action.get());
         if (action != nullptr)
         {
-            action->DoAction(user, ActionRep.Inst.KeyStat);
+            action->DoAction(user, ActionRep.KeyStat);
             return true;
         }
     }
@@ -202,7 +220,13 @@ bool AttackProxy::DoAction(Actor & user, Stat KeyStat) const
 
 bool Spell::DoAction(Actor & user, Stat KeyStat) const
 {
+    // Don't cast a concentration spell if you already have one active.
+    if (Concentration && !user.CanConcentrate())
+        return false;
+
     ActorPtrs targets = ChooseTargets(user);
+    ActorPtrs hit_targets;
+    ActorPtrs missed_targets;
 
     if (targets.empty())
         return false;
@@ -220,10 +244,11 @@ bool Spell::DoAction(Actor & user, Stat KeyStat) const
             {
                 OUT_ALL << "        " << target->Name << " can't move." << std::endl;
                 for (Effect * e : HitEffects)
-                    e->DoEffect(user, target, false);
+                    e->DoEffect(user, target, false, KeyStat);
 
                 target->InfoStats.SavesFailed++;
                 user.InfoStats.ForcedSavesFailed++;
+                hit_targets.emplace_back(target);
             }
             else
             {
@@ -240,7 +265,8 @@ bool Spell::DoAction(Actor & user, Stat KeyStat) const
 
                     OUT_ALL << " Failed." << std::endl;
                     for (Effect * e : HitEffects)
-                        e->DoEffect(user, target, false);
+                        e->DoEffect(user, target, false, KeyStat);
+                    hit_targets.emplace_back(target);
                 }
                 else
                 {
@@ -249,7 +275,8 @@ bool Spell::DoAction(Actor & user, Stat KeyStat) const
 
                     OUT_ALL << " Saved!" << std::endl;
                     for (Effect * e : MissEffects)
-                        e->DoEffect(user, target, false);
+                        e->DoEffect(user, target, false, KeyStat);
+                    missed_targets.emplace_back(target);
                 }
             }
         }
@@ -263,36 +290,46 @@ bool Spell::DoAction(Actor & user, Stat KeyStat) const
             {
                 OUT_ALL << " Crit!" << std::endl;
                 for (Effect * e : HitEffects)
-                    e->DoEffect(user, target, true);
+                    e->DoEffect(user, target, true, KeyStat);
+                hit_targets.emplace_back(target);
             }
             if (roll >= target->Stats->AC)
             {
                 OUT_ALL << " Hit." << std::endl;
                 for (Effect * e : HitEffects)
-                    e->DoEffect(user, target, false);
+                    e->DoEffect(user, target, false, KeyStat);
+                hit_targets.emplace_back(target);
             }
             else
             {
                 OUT_ALL << " Miss!" << std::endl;
                 for (Effect * e : MissEffects)
-                    e->DoEffect(user, target, false);
+                    e->DoEffect(user, target, false, KeyStat);
+                missed_targets.emplace_back(target);
             }
         }
         else
         {
-            OUT_ALL << std::endl;
             for (Effect * e : HitEffects)
-                e->DoEffect(user, target, false);
+                e->DoEffect(user, target, false, KeyStat);
+            hit_targets.emplace_back(target);
         }
     }
+
+    user.AddOngoingAction(this, hit_targets, ActorPtrs(), Concentration);
 
     return true;
 }
 
-Spell::~Spell()
+OngoingAction::~OngoingAction()
 {
-    for (Effect * e : HitEffects)
-        delete e;
-    for (Effect * e : MissEffects)
-        delete e;
+    // When a spell instance expires, it must remove any effects it placed on other actors.
+
+    for (Effect * e : Data->HitEffects)
+        for (auto a : HitTargets)
+            e->EndEffect(a);
+
+    for (Effect * e : Data->MissEffects)
+        for (auto a : MissedTargets)
+            e->EndEffect(a);
 }

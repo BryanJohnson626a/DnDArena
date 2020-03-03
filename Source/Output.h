@@ -23,11 +23,13 @@ enum MessageLevel
     Info,
     Results,
     TrialResults,
-    AllActions
+    AllActions,
+    AllHPChanges,
+    AllOutput
 };
 
 // Change this to have compiler automatically remove some or all debug code.
-const enum MessageLevel MAX_OUTPUT_LEVEL = AllActions;
+const enum MessageLevel MAX_OUTPUT_LEVEL = AllOutput;
 
 class Output
 {
@@ -56,6 +58,7 @@ public:
 #define OUT_RESULTS if(Output::Out().CheckLevel(Results)) Output::Out().GetStream()
 #define OUT_TRIALS if(Output::Out().CheckLevel(TrialResults)) Output::Out().GetStream()
 #define OUT_ALL if(Output::Out().CheckLevel(AllActions)) Output::Out().GetStream()
+#define OUT_HP if (Output::Out().CheckLevel(AllHPChanges)) Output::Out().GetStream()
 
 std::ostream & operator<<(std::ostream & out, const ActorPtrs & actors);
 std::ostream & operator<<(std::ostream & out, const Arena & arena);

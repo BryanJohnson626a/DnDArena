@@ -3,7 +3,8 @@
     "Type": "Special",
     "Name": "Second Wind",
     "Target": "SelfInjured",
-    "Effects": [
+    "Duration": 0,
+    "HitEffects": [
       {
         "Type": "Healing",
         "HealingDieNum": 1,
@@ -11,19 +12,22 @@
         "HealingBonus": 0,
         "AddLevelMod": 1
       }
-    ]
+    ],
+    "MissEffects": []
   },
   "ActionSurge": {
     "Type": "Special",
     "Name": "Action Surge",
     "Target": "Self",
-    "Effects": [
+    "HitEffects": [
       {
         "Type": "ImmediateExtraActions",
         "ExtraActions": 1,
         "ExtraBonusActions": 0
       }
-    ]
+    ],
+    "Duration": 0,
+    "MissEffects": []
   },
   "MultiAttack": {
     "Type": "MultiAction",
@@ -42,28 +46,26 @@
     "Type": "Special",
     "Name": "Rage",
     "Target": "Self",
-    "Effects": [
+    "Duration": 10,
+    "HitEffects": [
       {
         "Type": "DamageBonus",
-        "Duration": 10,
         "BonusDamage": 2
       },
       {
         "Type": "Resistance",
-        "Duration": 10,
         "ResistanceType": "Slashing"
       },
       {
         "Type": "Resistance",
-        "Duration": 10,
         "ResistanceType": "Piercing"
       },
       {
         "Type": "Resistance",
-        "Duration": 10,
         "ResistanceType": "Bludgeoning"
       }
-    ]
+    ],
+    "MissEffects": []
   },
   "Frenzy": {
     "Type": "MultiAction",
@@ -73,6 +75,9 @@
       {
         "Name": "WeaponAttack"
       }
-    ]
+    ],
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
   }
 }

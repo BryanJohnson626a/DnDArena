@@ -3,48 +3,84 @@
     "Type": "WeaponAttack",
     "Name": "Unarmed Strike",
     "Target": "Enemy",
+    "Area": 1,
     "DamageDiceNum": 1,
     "DamageDiceSize": 1,
-    "DamageType": "Bludgeoning"
+    "DamageType": "Bludgeoning",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
   },
   "Longsword": {
     "Type": "WeaponAttack",
     "Name": "Longsword",
     "Target": "Enemy",
+    "Area": 1,
     "DamageDiceNum": 1,
     "DamageDiceSize": 8,
-    "DamageType": "Slashing"
+    "DamageType": "Slashing",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
   },
   "Greatsword": {
     "Type": "WeaponAttack",
     "Name": "Greatsword",
     "Target": "Enemy",
+    "Area": 1,
     "DamageDiceNum": 2,
     "DamageDiceSize": 6,
-    "DamageType": "Slashing"
+    "DamageType": "Slashing",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
   },
   "Greataxe": {
     "Type": "WeaponAttack",
     "Name": "Greataxe",
     "Target": "Enemy",
+    "Area": 1,
     "DamageDiceNum": 1,
     "DamageDiceSize": 12,
-    "DamageType": "Slashing"
+    "DamageType": "Slashing",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
   },
   "Scimitar": {
     "Type": "WeaponAttack",
     "Name": "Scimitar",
     "Target": "Enemy",
+    "Area": 1,
     "DamageDiceNum": 1,
     "DamageDiceSize": 6,
-    "DamageType": "Slashing"
+    "DamageType": "Slashing",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
+  },
+  "Greatclub": {
+    "Type": "WeaponAttack",
+    "Name": "Greatclub",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 8,
+    "DamageType": "Bludgeoning",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
   },
   "Stub": {
     "Type": "WeaponAttack",
     "Name": "",
     "Target": "Enemy",
+    "Area": 1,
     "DamageDiceNum": 1,
     "DamageDiceSize": 1,
-    "DamageType": ""
+    "DamageType": "",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
   }
 }

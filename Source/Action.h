@@ -16,7 +16,7 @@ public:
     virtual bool DoAction(Actor & user, Stat KeyStat) const = 0;
 
     Action() = default;
-    virtual ~Action() = default;
+    virtual ~Action();
 
     static std::shared_ptr<const Action> Get(const std::string & name);
     ActorPtrs ChooseTargets(Actor & user) const;
@@ -24,6 +24,9 @@ public:
     std::string Name;
     std::string Target;
     int Area{1};
+    int Duration{0};
+    std::vector<Effect *> HitEffects;
+    std::vector<Effect *> MissEffects;
 
     static std::map<std::string, std::weak_ptr<const Action>> ActionMap;
     static std::shared_ptr<const Action> GetWeaponAttackProxy();
@@ -39,20 +42,16 @@ public:
 class WeaponAttack : public Action
 {
 public:
-    WeaponAttack() = default;
-
     bool DoAction(Actor & user, Stat KeyStat) const override;
 
     int DamageDiceNum{0};
     Die * DamageDie{0};
-    DamageType DamageType;
+    DamageType DamageType{InvalidDamageType};
 };
 
 class MultiAction : public Action
 {
 public:
-    MultiAction() = default;
-
     bool DoAction(Actor & user, Stat KeyStat) const override;
 
     std::vector<std::shared_ptr<const Action>> Actions;
@@ -61,28 +60,27 @@ public:
 class SpecialAction : public Action
 {
 public:
-    SpecialAction() = default;
-
-    // Special actions are responsible for cleaning up their effects.
-    ~SpecialAction() override;
-
     bool DoAction(Actor & user, Stat KeyStat) const override;
-
-    std::vector<Effect *> Effects;
 };
 
 class Spell : public Action
 {
 public:
-    Spell() = default;
-
-    // Spells are responsible for cleaning up their effects.
-    ~Spell() override;
-
     bool DoAction(Actor & user, Stat KeyStat) const override;
 
     Stat SavingThrow{None};
     bool SpellAttack{false};
-    std::vector<Effect *> HitEffects;
-    std::vector<Effect *> MissEffects;
+    bool Concentration{false};
+};
+
+// A ongoing action is created for actions that have a duration
+// in order to manage their ongoing effects.
+class OngoingAction
+{
+public:
+    ~OngoingAction();
+    const Action * Data;
+    int DurationRemaining;
+    ActorPtrs HitTargets;
+    ActorPtrs MissedTargets;
 };

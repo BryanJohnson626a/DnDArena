@@ -42,6 +42,18 @@ DamageType ToDamageType(const std::string & s)
     else return InvalidDamageType;
 }
 
+SizeCategory ToSizeCategory(const std::string & s)
+{
+    if (s == "NoSize") return NoSize;
+    else if (s == "Tiny") return Tiny;
+    else if (s == "Small") return Small;
+    else if (s == "Medium") return Medium;
+    else if (s == "Large") return Large;
+    else if (s == "Huge") return Huge;
+    else if (s == "Gargantuan") return Gargantuan;
+    else return InvalidSize;
+}
+
 Action * LoadSpecial(const nlohmann::json & js);
 Action * LoadMultiAction(const nlohmann::json & js);
 Action * LoadWeaponAttack(const nlohmann::json & json);
@@ -127,6 +139,12 @@ void from_json(const nlohmann::json & js, ActionInstance & action_instance)
     action_instance.KeyStat = ToStat(key_stat);
 }
 
+void from_json(const nlohmann::json & js, RiderEffect & rider_effect)
+{
+    Import(js, rider_effect.Effect, "Effect");
+    Import(js, rider_effect.Uses, "Uses");
+}
+
 bool Invalid(const ActionInstance & a)
 {
     return a.Action == nullptr;
@@ -138,6 +156,10 @@ void from_json(const nlohmann::json & js, StatBlock *& stat_block)
     stat_block = new StatBlock;
 
     Import(js, stat_block->Name, "Name");
+    Import(js, stat_block->Heroic, "Heroic");
+    std::string size_category;
+    Import(js, size_category, "Size");
+    stat_block->Size = ToSizeCategory(size_category);
     Import(js, stat_block->Type, "Type");
     Import(js, stat_block->HDNum, "HDNum");
     Import(js, stat_block->HDSize, "HDSize");
@@ -162,6 +184,7 @@ void from_json(const nlohmann::json & js, StatBlock *& stat_block)
     Import(js, stat_block->Crit, "Crit");
     Import(js, stat_block->Actions, "Actions");
     Import(js, stat_block->BonusActions, "BonusActions");
+    Import(js, stat_block->HitRiders, "HitRiders");
 
 
     // Remove any invalid actions or bonus actions.
@@ -235,6 +258,9 @@ void from_json(const nlohmann::json & js, WeaponAttack & action)
     int die_size;
     Import(js, die_size, "DamageDiceSize");
     action.DamageDie = Die::Get(die_size);
+    std::string damage_type;
+    Import(js, damage_type, "DamageType");
+    action.DamageType = ToDamageType(damage_type);
 }
 
 Action * LoadWeaponAttack(const nlohmann::json & js)
@@ -258,7 +284,6 @@ Action * LoadMultiAction(const nlohmann::json & js)
 
 void from_json(const nlohmann::json & js, SpecialAction & action)
 {
-    Import(js, action.Effects, "Effects");
 }
 
 Action * LoadSpecial(const nlohmann::json & js)
@@ -270,17 +295,12 @@ Action * LoadSpecial(const nlohmann::json & js)
 
 void from_json(const nlohmann::json & js, Spell & action)
 {
-    Import(js, action.Area, "Area");
-    // Scale down raw scale into likely number of targets hit.
-    if (action.Area > 1)
-        action.Area = std::ceil(std::pow(float(action.Area) / 3.14f, 0.5f) * 2);
 
     std::string stat_name;
     Import(js, stat_name, "SavingThrow");
     action.SavingThrow = ToStat(stat_name);
     Import(js, action.SpellAttack, "SpellAttack");
-    Import(js, action.HitEffects, "HitEffects");
-    Import(js, action.MissEffects, "MissEffects");
+    Import(js, action.Concentration, "Concentration");
 }
 
 Action * LoadSpell(const nlohmann::json & js)
@@ -304,11 +324,19 @@ Action * LoadAction(const nlohmann::json & js)
     if (action == nullptr)
     {
         OUT_WARNING << "Unrecognized action type \"" << type << "\"." << WARNING_END;
-        return action;
+        return nullptr;
     }
 
     Import(js, action->Name, "Name");
     Import(js, action->Target, "Target");
+    Import(js, action->Area, "Area");
+    Import(js, action->Duration, "Duration");
+    Import(js, action->HitEffects, "HitEffects");
+    Import(js, action->MissEffects, "MissEffects");
+
+    // Scale down raw scale into likely number of targets hit.
+    if (action->Area > 1)
+        action->Area = (int) std::round(std::pow(float(action->Area) / 3.14f, 0.5f) * 2);
 
     return action;
 }
@@ -346,13 +374,29 @@ void from_json(const nlohmann::json & js, EffectExtraActions & effect)
     Import(js, effect.ExtraBonusActions, "ExtraBonusActions");
 }
 
+Effect * LoadEffectUsableAction(const nlohmann::json & js)
+{
+    auto * effect = new UsableAction();
+    js.get_to(*effect);
+    return effect;
+}
+
+void from_json(const nlohmann::json & js, UsableAction & effect)
+{
+    auto * action_inst = new ActionInstance;
+    Import(js, action_inst->Action, "Action");
+    Import(js, action_inst->Uses, "Uses");
+    effect.ActionInst = action_inst;
+
+    Import(js, effect.ActionType, "ActionType");
+}
+
 void from_json(const nlohmann::json & js, OngoingDamageBonus & effect)
 {
-    Import(js, effect.Duration, "Duration");
     Import(js, effect.BonusDamage, "BonusDamage");
 }
 
-OngoingEffect * LoadEffectOngoingDamageBonus(const nlohmann::json & js)
+Effect * LoadEffectOngoingDamageBonus(const nlohmann::json & js)
 {
     auto * effect = new OngoingDamageBonus();
     js.get_to(*effect);
@@ -361,13 +405,12 @@ OngoingEffect * LoadEffectOngoingDamageBonus(const nlohmann::json & js)
 
 void from_json(const nlohmann::json & js, OngoingResistance & effect)
 {
-    Import(js, effect.Duration, "Duration");
     std::string damage_type;
     Import(js, damage_type, "ResistanceType");
     effect.ResistanceType = ToDamageType(damage_type);
 }
 
-OngoingEffect * LoadEffectOngoingResistance(const nlohmann::json & js)
+Effect * LoadEffectOngoingResistance(const nlohmann::json & js)
 {
     auto * effect = new OngoingResistance();
     js.get_to(*effect);
@@ -405,6 +448,7 @@ Effect * LoadEffect(const nlohmann::json & js)
     else if (type == "ImmediateExtraActions") effect = LoadEffectImmediateExtraAction(js);
     else if (type == "DamageBonus") effect = LoadEffectOngoingDamageBonus(js);
     else if (type == "Resistance") effect = LoadEffectOngoingResistance(js);
+    else if (type == "UsableAction") effect = LoadEffectUsableAction(js);
 
     if (effect == nullptr)
     {

@@ -1,6 +1,8 @@
 {
-  "Fighter5": {
+  "ChampionFighter5": {
     "Name": "Fighter",
+    "Heroic": true,
+    "Size": "Medium",
     "Type": "Humanoid",
     "HDNum": 5,
     "HDSize": 10,
@@ -56,8 +58,82 @@
       }
     ]
   },
+  "BattleMasterFighter5": {
+    "Name": "Fighter",
+    "Heroic": true,
+    "Size": "Medium",
+    "Type": "Humanoid",
+    "HDNum": 5,
+    "HDSize": 10,
+    "Proficiency": 3,
+    "InitiativeBonus": 0,
+    "ArmorValue": 6,
+    "ShieldValue": 2,
+    "AttackBonus": 0,
+    "DamageBonus": 2,
+    "Strength": 18,
+    "Dexterity": 15,
+    "Constitution": 15,
+    "Intelligence": 11,
+    "Wisdom": 13,
+    "Charisma": 9,
+    "SaveSTR": true,
+    "SaveDEX": false,
+    "SaveCON": true,
+    "SaveINT": false,
+    "SaveWIS": false,
+    "SaveCHA": false,
+    "Crit": 20,
+    "Actions": [
+      {
+        "Action": {
+          "Name": "MultiAttack"
+        },
+        "Uses": -1,
+        "KeyStat": "None"
+      },
+      {
+        "Action": {
+          "Name": "Longsword"
+        },
+        "Uses": -1,
+        "KeyStat": "Strength"
+      }
+    ],
+    "BonusActions": [
+      {
+        "Action": {
+          "Name": "ActionSurge"
+        },
+        "Uses": 1,
+        "KeyStat": "None"
+      },
+      {
+        "Action": {
+          "Name": "SecondWind"
+        },
+        "Uses": 1,
+        "KeyStat": "None"
+      }
+    ],
+    "HitRiders": [
+      {
+        "Effect": {
+          "Type": "Damage",
+          "DamageDieNum": 1,
+          "DamageDieSize": 8,
+          "DamageBonus": 0,
+          "DamageMultiplier": 1,
+          "DamageType": "Slashing"
+        },
+        "Uses": 4
+      }
+    ]
+  },
   "Barbarian5": {
     "Name": "Barbarian",
+    "Heroic": true,
+    "Size": "Medium",
     "Type": "Humanoid",
     "HDNum": 5,
     "HDSize": 12,
@@ -115,6 +191,8 @@
   },
   "Cleric5": {
     "Name": "Cleric",
+    "Heroic": true,
+    "Size": "Medium",
     "Type": "Humanoid",
     "HDNum": 5,
     "HDSize": 8,
@@ -179,6 +257,8 @@
   },
   "Stub": {
     "Name": "",
+    "Heroic": true,
+    "Size": "Medium",
     "Type": "Humanoid",
     "HDNum": 0,
     "HDSize": 0,

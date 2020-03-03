@@ -1,6 +1,8 @@
 {
   "Orc": {
     "Name": "Orc",
+    "Heroic": false,
+    "Size": "Medium",
     "Type": "Humanoid",
     "HDNum": 2,
     "HDSize": 8,
@@ -36,6 +38,8 @@
   },
   "Goblin": {
     "Name": "Goblin",
+    "Heroic": false,
+    "Size": "Small",
     "Type": "Humanoid",
     "HDNum": 2,
     "HDSize": 6,
@@ -69,8 +73,91 @@
     ],
     "BonusActions": []
   },
+  "Ogre": {
+    "Name": "Ogre",
+    "Heroic": false,
+    "Size": "Large",
+    "Type": "Giant",
+    "HDNum": 7,
+    "HDSize": 10,
+    "Proficiency": 2,
+    "InitiativeBonus": 0,
+    "ArmorValue": 2,
+    "ShieldValue": 0,
+    "AttackBonus": 0,
+    "DamageBonus": 0,
+    "Strength": 19,
+    "Dexterity": 8,
+    "Constitution": 16,
+    "Intelligence": 5,
+    "Wisdom": 7,
+    "Charisma": 7,
+    "SaveSTR": false,
+    "SaveDEX": false,
+    "SaveCON": false,
+    "SaveINT": false,
+    "SaveWIS": false,
+    "SaveCHA": false,
+    "Crit": 20,
+    "Actions": [
+      {
+        "Action": {
+          "Name": "Greatclub"
+        },
+        "Uses": -1,
+        "KeyStat": "Strength"
+      }
+    ],
+    "BonusActions": []
+  },
+  "Orog": {
+    "Name": "Orog",
+    "Heroic": false,
+    "Size": "Medium",
+    "Type": "Humanoid",
+    "HDNum": 5,
+    "HDSize": 8,
+    "Proficiency": 2,
+    "InitiativeBonus": 0,
+    "ArmorValue": 8,
+    "ShieldValue": 0,
+    "AttackBonus": 0,
+    "DamageBonus": 0,
+    "Strength": 18,
+    "Dexterity": 12,
+    "Constitution": 18,
+    "Intelligence": 12,
+    "Wisdom": 11,
+    "Charisma": 12,
+    "SaveSTR": false,
+    "SaveDEX": false,
+    "SaveCON": false,
+    "SaveINT": false,
+    "SaveWIS": false,
+    "SaveCHA": false,
+    "Crit": 20,
+    "Actions": [
+      {
+        "Action": {
+          "Name": "MultiAttack"
+        },
+        "Uses": -1,
+        "KeyStat": "None"
+      },
+      {
+        "Action": {
+          "Name": "Greataxe"
+        },
+        "Uses": -1,
+        "KeyStat": "Strength"
+      }
+    ],
+    "BonusActions": []
+  },
   "Stub": {
     "Name": "",
+    "Heroic": false,
+    "Size": "Medium",
     "Type": "Humanoid",
     "HDNum": 0,
     "HDSize": 0,

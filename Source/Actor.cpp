@@ -52,23 +52,27 @@ void Actor::Initialize()
 
     HP = HPMax;
 
-}
+    // Remove any spell instances still active.
+    for (auto & spell_inst : OngoingActions)
+        delete spell_inst;
+    OngoingActions.clear();
 
-void Actor::FillActionQueues()
-{
     ActionQueue.clear();
-    for (const ActionInstance & action_instance : Stats->Actions)
-        ActionQueue.push_back(ActionRep{action_instance, action_instance.Uses});
+    for (auto iter = Stats->Actions.rbegin(); iter != Stats->Actions.rend(); ++iter)
+        ActionQueue.push_front(ActionInstance{*iter});
 
     BonusActionQueue.clear();
-    for (const ActionInstance & action_instance : Stats->BonusActions)
-        BonusActionQueue.push_back(ActionRep{action_instance, action_instance.Uses});
+    for (auto iter = Stats->BonusActions.rbegin(); iter != Stats->BonusActions.rend(); ++iter)
+        BonusActionQueue.push_front(ActionInstance{*iter});
+
+    HitRiders.clear();
+    for (auto hit_rider : Stats->HitRiders)
+        HitRiders.emplace_back(hit_rider);
 }
 
 Actor::Actor(std::string_view name, std::shared_ptr<const StatBlock> stat_block, int team, Arena & arena) :
         Stats(std::move(stat_block)), Team(team), Name(name.data()), CurrentArena(arena)
 {
-    FillActionQueues();
     Initialize();
     ResetInfo();
 }
@@ -93,73 +97,83 @@ bool Actor::Conscious() const
     return State == DeathState::Conscious;
 }
 
-bool NoDuration(const Actor::EffectRep & e)
+bool Expired(const OngoingAction & spell)
 {
-    return e.duration_remaining <= 0;
+    return spell.DurationRemaining <= 0;
 }
 
-void Actor::DoRound()
+void Actor::TakeTurn()
 {
     if (HP == 0 && Alive())
         DeathSave();
 
     if (Conscious())
     {
-        TakeBonusAction();
+        // Try to use a bonus action, then use an action, then try to use a
+        // bonus action again since an action might create or allow a bonus action.
+        bool used_bonus_action = TakeBonusAction();
         TakeAction();
+        if (!used_bonus_action)
+            TakeBonusAction();
     }
-    for (auto & e : OngoingEffects)
+
+    // Tick down the duration of any active spells.
+    for (auto & spell_inst : OngoingActions)
     {
-        --e.duration_remaining;
-        if (NoDuration(e))
-            e.effect->End(this);
+        --spell_inst->DurationRemaining;
+        if (spell_inst->DurationRemaining <= 0)
+        {
+            delete spell_inst;
+            spell_inst = nullptr;
+        }
     }
-    if (!OngoingEffects.empty())
-        OngoingEffects.erase(std::remove_if(OngoingEffects.begin(), OngoingEffects.end(), NoDuration),
-                             OngoingEffects.end());
+
+    // Clean up expired spells.
+    if (!OngoingActions.empty())
+        OngoingActions.erase(std::remove(OngoingActions.begin(), OngoingActions.end(), nullptr),
+                             OngoingActions.end());
 }
 
-void Actor::TakeAction()
+bool Actor::TakeAction()
 {
-    auto action = ChooseAction(ActionQueue);
-    if (action != nullptr)
-    {
-        bool used = action->Inst.Action->DoAction(*this, action->Inst.KeyStat);
-        if (used)
-            --action->UsesRemaining;
-    }
+    for (auto & action : ActionQueue)
+        if (action.Uses != 0)
+        {
+            bool used = action.Action->DoAction(*this, action.KeyStat);
+            if (used)
+            {
+                --action.Uses;
+                return true;
+            }
+        }
+    return false;
 }
 
-void Actor::TakeBonusAction()
+bool Actor::TakeBonusAction()
 {
-    auto action = ChooseAction(BonusActionQueue);
-    if (action != nullptr)
-    {
-        bool used = action->Inst.Action->DoAction(*this, action->Inst.KeyStat);
-        if (used)
-            --action->UsesRemaining;
-    }
+    for (auto & action : BonusActionQueue)
+        if (action.Uses != 0)
+        {
+            bool used = action.Action->DoAction(*this, action.KeyStat);
+            if (used)
+            {
+                --action.Uses;
+                return true;
+            }
+        }
+    return false;
 }
 
-Actor::ActionRep * Actor::ChooseAction(std::vector<ActionRep> & actions) const
+ActionInstance * Actor::ChooseAction(ActionList & actions) const
 {
     for (auto & action : actions)
-        if (action.UsesRemaining != 0)
-            return &action;
+        return &action;
 
     return nullptr;
 }
 
 int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
 {
-    if (HasResistance(damage_type))
-        damage /= 2;
-
-    HP -= damage;
-
-    damager.InfoStats.DamageDone += damage;
-    InfoStats.DamageTaken += damage;
-
     if (State == Dying)
     {
         FailedDeathSaves += 2;
@@ -169,33 +183,54 @@ int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
             ++InfoStats.Deaths;
             ++damager.InfoStats.Kills;
         }
+        return 0;
+    }
+
+    if (HasResistance(damage_type))
+        damage /= 2;
+
+    HP -= damage;
+
+    if (HP <= 0)
+    {
+        if (-HP > HPMax || !Stats->Heroic)
+        {
+            // Damage over what HP was left doesn't count.
+            damage += HP;
+
+            HP = 0;
+            State = DeathState::Dead;
+            if (Stats->Heroic)
+            { OUT_ALL << "            " << Name << " dies instantly!" << std::endl; }
+            else
+            { OUT_ALL << "            " << Name << " dies." << std::endl; }
+
+            ++InfoStats.Deaths;
+            ++damager.InfoStats.Kills;
+            ++InfoStats.KOed;
+            ++damager.InfoStats.KOs;
+        }
+        else
+        {
+            // Damage over what HP was left doesn't count.
+            damage += HP;
+
+            HP = 0;
+            State = DeathState::Dying;
+            OUT_ALL << "            " << Name << " has fallen!" << std::endl;
+
+            ++InfoStats.KOed;
+            ++damager.InfoStats.KOs;
+        }
     }
     else
     {
-        if (HP <= 0)
-        {
-            if (-HP > HPMax)
-            {
-                HP = 0;
-                State = DeathState::Dead;
-                OUT_ALL << "        " << Name << " dies instantly!" << std::endl;
-
-                ++InfoStats.Deaths;
-                ++damager.InfoStats.Kills;
-            }
-            else
-            {
-                HP = 0;
-                State = DeathState::Dying;
-                OUT_ALL << "        " << Name << " has fallen!" << std::endl;
-
-                ++InfoStats.Falls;
-                ++damager.InfoStats.Downs;
-            }
-        }
-        else
-            OUT_ALL << "        " << Name << " has " << HP << "/" << HPMax << " HP remaning." << std::endl;
+        OUT_HP << "            " << Name << " has " << HP << "/" << HPMax << " HP remaning." << std::endl;
     }
+
+    damager.InfoStats.DamageDone += damage;
+    InfoStats.DamageTaken += damage;
+
     return damage;
 }
 
@@ -247,13 +282,13 @@ void Actor::DeathCheck()
         // Dead
         State = DeathState::Dead;
         InfoStats.Deaths++;
-        OUT_ALL << "        " << Name << " died!" << std::endl;
+        OUT_ALL << "            " << Name << " died!" << std::endl;
     }
     else if (State == DeathState::Dying && SuccessfulDeathSaves >= 3)
     {
         // Stable
         State = DeathState::Stable;
-        OUT_ALL << "        " << Name << " has stabilized." << std::endl;
+        OUT_ALL << "            " << Name << " has stabilized." << std::endl;
     }
 }
 
@@ -296,9 +331,20 @@ bool Actor::IsInjured() const
     return HP < HPMax;
 }
 
-void Actor::AddEffect(const OngoingEffect * ongoing_effect)
+bool Actor::AddOngoingAction(const Action * action, ActorPtrs hit_targets,
+                             ActorPtrs missed_targets, bool concentration)
 {
-    OngoingEffects.emplace_back(EffectRep{ongoing_effect, ongoing_effect->Duration});
+    if (concentration && !CanConcentrate())
+        return false;
+
+    auto a = new OngoingAction{action, action->Duration, std::move(hit_targets), std::move(missed_targets)};
+
+    OngoingActions.emplace_back(a);
+
+    if (concentration)
+        ConcentrationSpell = a;
+
+    return true;
 }
 
 int Actor::GetDamageBonus() const
@@ -351,6 +397,18 @@ void Actor::RemoveResistance(DamageType damage_type)
 int Actor::MaxHP() const
 {
     return HPMax;
+}
+
+Actor::~Actor()
+{
+    // Active spells are built for specific actors and so must be cleaned up.
+    for (auto & spell_inst : OngoingActions)
+        delete spell_inst;
+}
+
+bool Actor::CanConcentrate() const
+{
+    return ConcentrationSpell == nullptr;
 }
 
 std::shared_ptr<const StatBlock> StatBlock::Get(const std::string_view & name)

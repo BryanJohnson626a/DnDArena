@@ -41,15 +41,6 @@ Output & Output::Out()
     return OutputSingleton;
 }
 
-std::ostream & operator<<(std::ostream & out, const ActorPtrs & actors)
-{
-    out << "Initiative order:" << std::endl;
-    for (const Actor * actor : actors)
-        out << actor->Initiative << " " << *actor << std::endl;
-
-    return out;
-}
-
 std::ostream & operator<<(std::ostream & out, const Actor & actor)
 {
     out << actor.Name;
@@ -119,12 +110,15 @@ std::ostream & operator<<(std::ostream & out, enum DamageType damage_type)
     switch (damage_type)
     {
         case Slashing:
+        case MagicalSlashing:
             out << "slashing";
             break;
         case Bludgeoning:
+        case MagicalBludgeoning:
             out << "bludgeoning";
             break;
         case Piercing:
+        case MagicalPiercing:
             out << "piercing";
             break;
         case Fire:

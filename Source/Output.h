@@ -60,7 +60,6 @@ public:
 #define OUT_ALL if(Output::Out().CheckLevel(AllActions)) Output::Out().GetStream()
 #define OUT_HP if (Output::Out().CheckLevel(AllHPChanges)) Output::Out().GetStream()
 
-std::ostream & operator<<(std::ostream & out, const ActorPtrs & actors);
 std::ostream & operator<<(std::ostream & out, const Arena & arena);
 std::ostream & operator<<(std::ostream & out, const Group & group);
 std::ostream & operator<<(std::ostream & out, const Groups & groups);

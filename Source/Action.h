@@ -27,6 +27,7 @@ public:
     int Duration{0};
     std::vector<Effect *> HitEffects;
     std::vector<Effect *> MissEffects;
+    PropertyField Properties;
 
     static std::map<std::string, std::weak_ptr<const Action>> ActionMap;
     static std::shared_ptr<const Action> GetWeaponAttackProxy();
@@ -46,6 +47,8 @@ public:
 
     int DamageDiceNum{0};
     Die * DamageDie{0};
+    int DamageBonus{0};
+    int HitBonus{0};
     DamageType DamageType{InvalidDamageType};
 };
 

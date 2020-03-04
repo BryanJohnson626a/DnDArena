@@ -1,0 +1,84 @@
+{
+  "Talon": {
+    "Type": "WeaponAttack",
+    "Name": "Talon",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 4,
+    "DamageBonus": 0,
+    "HitBonus": 0,
+    "DamageType": "Slashing",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
+  },
+  "Fist": {
+    "Type": "WeaponAttack",
+    "Name": "Fist",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 4,
+    "DamageBonus": 0,
+    "HitBonus": 0,
+    "DamageType": "Bludgeoning",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
+  },
+  "ImpSting": {
+    "Type": "WeaponAttack",
+    "Name": "Sting",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 1,
+    "DamageBonus": 0,
+    "HitBonus": 0,
+    "DamageType": "Piercing",
+    "Duration": 0,
+    "HitEffects": [
+      {
+        "Type": "SaveEffect",
+        "DC": 11,
+        "SavingThrow": "Constitution",
+        "HitEffects": [
+          {
+            "Type": "Damage",
+            "DamageDieNum": 3,
+            "DamageDieSize": 6,
+            "DamageBonus": 0,
+            "DamageMultiplier": 1,
+            "DamageType": "Poison"
+          }
+        ],
+        "MissEffects": [
+          {
+            "Type": "Damage",
+            "DamageDieNum": 3,
+            "DamageDieSize": 6,
+            "DamageBonus": 0,
+            "DamageMultiplier": 0.5,
+            "DamageType": "Poison"
+          }
+        ]
+      }
+    ],
+    "MissEffects": []
+  },
+  "Stub": {
+    "Type": "WeaponAttack",
+    "Name": "",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 1,
+    "DamageBonus": 0,
+    "HitBonus": 0,
+    "DamageType": "",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
+  }
+}

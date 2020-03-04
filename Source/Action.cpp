@@ -17,41 +17,19 @@ std::map<std::string, std::weak_ptr<const Action>> Action::ActionMap;
 ActorPtrs Action::ChooseTargets(Actor & user) const
 {
     ActorPtrs targets;
-    if (Target == "Self" || (Target == "SelfInjured" && user.IsInjured()))
+    if (Target == "Self" || (Target == "SelfInjured" && user.IsBloodied()))
         targets.push_back(&user);
-    else if (Target == "Enemy" && Area == 1)
+    else if (Target == "Enemy")
     {
-        // Get a conscious target.
-        Actor * target = user.CurrentArena.OtherGroup(user.Team).FirstConscious();
-
-        // Or at least an alive one.
-        if (target == nullptr)
-            target = user.CurrentArena.OtherGroup(user.Team).FirstAlive();
-
-        // If nobody is alive, no targets.
-        if (target != nullptr)
-            targets.push_back(target);
-    }
-    else if (Target == "Enemy" && Area > 1)
-    {
-        // Get some conscious targets
+        // Get conscious enemies first
         targets = user.CurrentArena.OtherGroup(user.Team).AllConscious();
 
-        // Trim down the list if we have too many.
-        if (targets.size() > Area)
-            targets.resize(Area);
-        else if (targets.size() < Area)
-        {
-            // Add anyone else still alive if we don't have enough.
-            ActorPtrs additional_targets = user.CurrentArena.OtherGroup(user.Team).AllAlive();
-            for (Actor * additional_target : additional_targets)
-                if (!additional_target->Conscious())
-                    targets.emplace_back(additional_target);
+        // Add unconscious but alive enemies after.
+        ActorPtrs additional_targets = user.CurrentArena.OtherGroup(user.Team).AllAlive();
+        for (Actor * additional_target : additional_targets)
+            if (!additional_target->Conscious())
+                targets.emplace_back(additional_target);
 
-            // Trim the new list down if needed.
-            if (targets.size() > Area)
-                targets.resize(Area);
-        }
     }
 
     return targets;
@@ -99,80 +77,96 @@ bool WeaponAttack::DoAction(Actor & user, Stat KeyStat) const
     if (targets.empty())
         return false;
 
-    Actor & target = *targets[0];
-    OUT_ALL << "    " << user.Name << " attacks " << target << " with " << Name << ". ";
-
-    int stat_mod = user.GetStatMod(KeyStat);
-    int attack_mod = stat_mod + user.Stats->Proficiency + user.Stats->AttackBonus;
-    int roll = 0;
-
-    OUT_ALL << "Rolled ";
-    if (!target.Conscious()) // Advantage if target is not conscious.
-        roll = D20.Roll(2, 1);
-    else
-        roll = D20.Roll();
-    OUT_ALL << "+" << attack_mod << "=" << roll + attack_mod << " vs " << target.Stats->AC << " AC ";
-
-    if ((roll == 20 || roll + attack_mod >= target.Stats->AC) && roll != 1)
+    for (Actor * target_ptr : targets)
     {
+        Actor & target = *target_ptr;
 
-        target.InfoStats.AttacksReceived++;
-        user.InfoStats.AttacksLanded++;
+        // Don't try to attack something immune to our damage.
+        if (target.HasImmunity(DamageType))
+            continue;
 
-        int dice_rolled_mult = 1;
-        bool crit = false;
+        OUT_ALL << "    " << user.Name << " attacks " << target << " with " << Name << ". ";
 
-        // Larger creatures use bigger weapons.
-        if (user.Stats->Size > Medium)
+        int stat_mod = user.GetStatMod(KeyStat);
+        int attack_mod = stat_mod + user.Stats->Proficiency + user.Stats->AttackBonus + HitBonus;
+        int roll = 0;
+
+        OUT_ALL << "Rolled ";
+        if (!target.Conscious()) // Advantage if target is not conscious.
+            roll = D20.Roll(2, 1);
+        else
+            roll = D20.Roll();
+        OUT_ALL << "+" << attack_mod << "=" << roll + attack_mod << " vs " << target.Stats->AC << " AC ";
+
+        if ((roll == 20 || roll + attack_mod >= target.Stats->AC) && roll != 1)
         {
-            if (user.Stats->Size == Large)
+
+            target.InfoStats.AttacksReceived++;
+            user.InfoStats.AttacksLanded++;
+
+            int dice_rolled_mult = 1;
+            bool crit = false;
+
+            // Larger creatures use bigger weapons.
+            if (user.Stats->Size > Medium)
+            {
+                if (user.Stats->Size == Large)
+                    dice_rolled_mult *= 2;
+                else if (user.Stats->Size == Huge)
+                    dice_rolled_mult *= 3;
+                else if (user.Stats->Size == Gargantuan)
+                    dice_rolled_mult *= 4;
+            }
+
+            if (roll >= user.Stats->Crit && roll + attack_mod >= target.Stats->AC)
+            {
+                // crit
+                crit = true;
+                target.InfoStats.CritsReceived++;
+                user.InfoStats.CritsLanded++;
+                OUT_ALL << "critical hit dealing ";
                 dice_rolled_mult *= 2;
-            else if (user.Stats->Size == Huge)
-                dice_rolled_mult *= 3;
-            else if (user.Stats->Size == Gargantuan)
-                dice_rolled_mult *= 4;
-        }
+            }
 
-        if (roll >= user.Stats->Crit && roll + attack_mod >= target.Stats->AC)
+            int damage_bonus = stat_mod + user.GetDamageBonus() + DamageBonus;
+            int damage = DamageDie->RollMod(damage_bonus, DamageDiceNum * dice_rolled_mult);
+
+            if (target.HasResistance(DamageType))
+                OUT_ALL << " resisted to " << damage / 2;
+            OUT_ALL << " " << DamageType << " damage." << std::endl;
+
+            if (damage < 0)
+            OUT_ERROR << "Negative damage dealt." << ERROR_END;
+
+            damage = target.TakeDamage(damage, DamageType, user);
+
+            for (auto & hit_rider : user.HitRiders)
+            {
+                hit_rider.Effect->DoEffect(user, &target, crit, KeyStat);
+                --hit_rider.Uses;
+            }
+
+            for (auto effect : HitEffects)
+                effect->DoEffect(user, &target, crit, KeyStat);
+        }
+        else
         {
-            // crit
-            crit = true;
-            target.InfoStats.CritsReceived++;
-            user.InfoStats.CritsLanded++;
-            OUT_ALL << "critical hit dealing ";
-            dice_rolled_mult *= 2;
+            // miss
+            target.InfoStats.AttacksAvoided++;
+            user.InfoStats.AttacksMissed++;
+            OUT_ALL << "Miss! " << std::endl;
+
+            for (auto effect : MissEffects)
+                effect->DoEffect(user, &target, false, KeyStat);
         }
-
-        int damage = DamageDie->RollMod(stat_mod + user.GetDamageBonus(), DamageDiceNum * dice_rolled_mult);
-
-        if (target.HasResistance(DamageType))
-            OUT_ALL << " resisted to " << damage / 2;
-        OUT_ALL << " " << DamageType << " damage." << std::endl;
-
-        if (damage < 0)
-        OUT_ERROR << "Negative damage dealt." << ERROR_END;
-
-        damage = target.TakeDamage(damage, DamageType, user);
-
-        for (auto & hit_rider : user.HitRiders)
-        {
-            hit_rider.Effect->DoEffect(user, &target, crit, KeyStat);
-            --hit_rider.Uses;
-        }
+        return true;
     }
-    else
-    {
-        // miss
-        target.InfoStats.AttacksAvoided++;
-        user.InfoStats.AttacksMissed++;
-        OUT_ALL << "Miss! " << std::endl;
-    }
-    return true;
+    return false;
 }
 
 bool MultiAction::DoAction(Actor & user, Stat KeyStat) const
 {
-    OUT_ALL << "    " << user.Name << " uses " << Name << "." << std::endl;
+    // OUT_ALL << "    " << user.Name << " uses " << Name << "." << std::endl;
     bool used_action = false;
     for (const std::shared_ptr<const Action> & action : Actions)
         if (action->DoAction(user, KeyStat))
@@ -197,11 +191,12 @@ bool SpecialAction::DoAction(Actor & user, Stat KeyStat) const
 
         for (Effect * e : HitEffects)
             e->DoEffect(user, target, false, KeyStat);
+
+        user.AddOngoingAction(this, targets, ActorPtrs(), false);
+
+        return true;
     }
-
-    user.AddOngoingAction(this, targets, ActorPtrs(), false);
-
-    return true;
+    return false;
 }
 
 bool AttackProxy::DoAction(Actor & user, Stat KeyStat) const
@@ -210,10 +205,7 @@ bool AttackProxy::DoAction(Actor & user, Stat KeyStat) const
     {
         auto action = dynamic_cast<const WeaponAttack *>(ActionRep.Action.get());
         if (action != nullptr)
-        {
-            action->DoAction(user, ActionRep.KeyStat);
-            return true;
-        }
+            return action->DoAction(user, ActionRep.KeyStat);
     }
     return false;
 }
@@ -231,6 +223,7 @@ bool Spell::DoAction(Actor & user, Stat KeyStat) const
     if (targets.empty())
         return false;
 
+    int affected = Area;
     for (Actor * target : targets)
     {
         OUT_ALL << "    " << user.Name << " casts " << Name;
@@ -254,29 +247,19 @@ bool Spell::DoAction(Actor & user, Stat KeyStat) const
             {
                 int dc = 8 + user.GetStatMod(KeyStat) + user.Stats->Proficiency;
 
-                OUT_ALL << "        " << target->Name << " rolled ";
-                int roll = D20.RollMod(target->GetSave(SavingThrow));
-                OUT_ALL << " against DC " << dc;
+                bool made_save = target->MakeSave(SavingThrow, dc, user, Properties);
 
-                if (roll < dc)
+                if (made_save)
                 {
-                    target->InfoStats.SavesFailed++;
-                    user.InfoStats.ForcedSavesFailed++;
-
-                    OUT_ALL << " Failed." << std::endl;
-                    for (Effect * e : HitEffects)
-                        e->DoEffect(user, target, false, KeyStat);
-                    hit_targets.emplace_back(target);
-                }
-                else
-                {
-                    target->InfoStats.SavesMade++;
-                    user.InfoStats.ForcedSavesMade++;
-
-                    OUT_ALL << " Saved!" << std::endl;
                     for (Effect * e : MissEffects)
                         e->DoEffect(user, target, false, KeyStat);
                     missed_targets.emplace_back(target);
+                }
+                else
+                {
+                    for (Effect * e : HitEffects)
+                        e->DoEffect(user, target, false, KeyStat);
+                    hit_targets.emplace_back(target);
                 }
             }
         }
@@ -314,6 +297,9 @@ bool Spell::DoAction(Actor & user, Stat KeyStat) const
                 e->DoEffect(user, target, false, KeyStat);
             hit_targets.emplace_back(target);
         }
+
+        if (--affected == 0)
+            break;
     }
 
     user.AddOngoingAction(this, hit_targets, ActorPtrs(), Concentration);

@@ -12,7 +12,7 @@
 #include "ImportJson.h"
 #include "Effect.h"
 
-std::map<std::string_view, std::weak_ptr<const StatBlock>> StatBlock::StatBlockMap;
+std::map<std::string, std::weak_ptr<const StatBlock>> StatBlock::StatBlockMap;
 
 void StatBlock::CalculateDerivedStats()
 {
@@ -38,19 +38,24 @@ void StatBlock::CalculateDerivedStats()
     Actions.emplace_back(ActionInstance{Action::Get("UnarmedStrike"), -1});
 }
 
+Actor::Actor(std::string_view name, std::shared_ptr<const StatBlock> stat_block, int team, Arena & arena) :
+        Stats(std::move(stat_block)), Team(team), Name(name.data()), CurrentArena(arena)
+{
+    Initialize();
+    Initialize();
+    ResetInfo();
+}
+
 void Actor::Initialize()
 {
-    Initiative = D20.Roll() + Stats->DEX + Stats->InitiativeBonus;
+    Initiative = 0;
+    HPMax = int(std::ceil(float(Stats->HDSize) / 2.f)) * Stats->HDNum;
+    HP = HPMax;
 
     SuccessfulDeathSaves = 0;
     FailedDeathSaves = 0;
     State = DeathState::Conscious;
-
-    HPMax = 0;
-    for (int i = 0; i < Stats->HDNum; ++i)
-        HPMax += Stats->HD->Roll() + Stats->CON;
-
-    HP = HPMax;
+    ConcentrationSpell = nullptr;
 
     // Remove any spell instances still active.
     for (auto & spell_inst : OngoingActions)
@@ -70,11 +75,30 @@ void Actor::Initialize()
         HitRiders.emplace_back(hit_rider);
 }
 
-Actor::Actor(std::string_view name, std::shared_ptr<const StatBlock> stat_block, int team, Arena & arena) :
-        Stats(std::move(stat_block)), Team(team), Name(name.data()), CurrentArena(arena)
+void Actor::RollInitiative()
 {
-    Initialize();
-    ResetInfo();
+    OUT_ALL << Name << " rolls initiative: ";
+    Initiative = D20.RollMod(Stats->DEX + Stats->InitiativeBonus);
+    OUT_ALL << std::endl;
+}
+
+void Actor::RollHealth()
+{
+
+    OUT_ALL << Name << " rolls health: ";
+    if (Stats->Heroic)
+    {
+        HPMax = Stats->HDSize + Stats->CON;
+        HPMax += Stats->HD->RollMod(Stats->CON * (Stats->HDNum - 1) + Stats->HDSize, Stats->HDNum - 1);
+        HP = HPMax;
+    }
+    else
+    {
+        HPMax = 0;
+        HPMax += Stats->HD->RollMod(Stats->CON * Stats->HDNum, Stats->HDNum);
+        HP = HPMax;
+    }
+    OUT_ALL << std::endl;
 }
 
 const Actor::Statistics & Actor::Info()
@@ -146,6 +170,7 @@ bool Actor::TakeAction()
                 return true;
             }
         }
+    OUT_ALL << "    " << Name << " can't do anything useful." << std::endl;
     return false;
 }
 
@@ -153,6 +178,21 @@ bool Actor::TakeBonusAction()
 {
     for (auto & action : BonusActionQueue)
         if (action.Uses != 0)
+        {
+            bool used = action.Action->DoAction(*this, action.KeyStat);
+            if (used)
+            {
+                --action.Uses;
+                return true;
+            }
+        }
+    return false;
+}
+
+bool Actor::DoWeaponAttack()
+{
+    for (auto & action : ActionQueue)
+        if (dynamic_cast<const WeaponAttack *>(&(*action.Action)) && action.Uses != 0)
         {
             bool used = action.Action->DoAction(*this, action.KeyStat);
             if (used)
@@ -174,6 +214,9 @@ ActionInstance * Actor::ChooseAction(ActionList & actions) const
 
 int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
 {
+    if (HasImmunity(damage_type))
+        return 0;
+
     if (State == Dying)
     {
         FailedDeathSaves += 2;
@@ -183,6 +226,12 @@ int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
             ++InfoStats.Deaths;
             ++damager.InfoStats.Kills;
         }
+        return 0;
+    }
+    // Can't damage something that's already dead.
+    if (State == Dead)
+    {
+        OUT_ALL << "            " << Name << " is already dead." << std::endl;
         return 0;
     }
 
@@ -326,9 +375,9 @@ int Actor::Heal(int amount)
     return amount;
 }
 
-bool Actor::IsInjured() const
+bool Actor::IsBloodied() const
 {
-    return HP < HPMax;
+    return HP < HPMax / 2;
 }
 
 bool Actor::AddOngoingAction(const Action * action, ActorPtrs hit_targets,
@@ -352,9 +401,23 @@ int Actor::GetDamageBonus() const
     return TempDamageBonus + Stats->DamageBonus;
 }
 
+template<class T>
+bool ItemExists(const std::vector<T> & list, const T & item)
+{
+    for (const T & i : list)
+        if (i == item)
+            return true;
+    return false;
+}
+
 bool Actor::HasResistance(DamageType damage_type) const
 {
-    return TempResistance[damage_type] > 0;
+    return TempResistance[damage_type] > 0 || ItemExists(Stats->Resistances, damage_type);
+}
+
+bool Actor::HasImmunity(DamageType damage_type) const
+{
+    return TempImmunity[damage_type] > 0 || ItemExists(Stats->Immunities, damage_type);
 }
 
 int Actor::GetSave(Stat stat)
@@ -411,12 +474,42 @@ bool Actor::CanConcentrate() const
     return ConcentrationSpell == nullptr;
 }
 
+bool Actor::MakeSave(Stat stat, int dc, Actor & instigator, PropertyField properties)
+{
+
+    OUT_ALL << "        " << Name << " rolled ";
+    int roll;
+    if (properties.test(IsSpell) && Stats->MagicResistance)
+        roll = D20.RollMod(GetSave(stat), 2, 1);
+    else
+        roll = D20.RollMod(GetSave(stat));
+    OUT_ALL << " against DC " << dc;
+
+    if (roll < dc)
+    {
+        InfoStats.SavesFailed++;
+        instigator.InfoStats.ForcedSavesFailed++;
+
+        OUT_ALL << " Failed." << std::endl;
+        return false;
+    }
+    else
+    {
+        InfoStats.SavesMade++;
+        instigator.InfoStats.ForcedSavesMade++;
+
+        OUT_ALL << " Saved!" << std::endl;
+        return true;
+    }
+}
+
 std::shared_ptr<const StatBlock> StatBlock::Get(const std::string_view & name)
 {
     auto iter = StatBlockMap.find(name.data());
+
     if (iter == StatBlockMap.end() || iter->second.expired())
     {
-        std::shared_ptr<StatBlock> new_stat_block(ParseStatBlock(name));
+        std::shared_ptr<const StatBlock> new_stat_block(ParseStatBlock(name));
         if (new_stat_block == nullptr)
         {
             OUT_WARNING << "Failed to load \"" << name << "\"." << WARNING_END;
@@ -424,7 +517,7 @@ std::shared_ptr<const StatBlock> StatBlock::Get(const std::string_view & name)
         }
         else
         {
-            StatBlockMap[name] = new_stat_block;
+            StatBlockMap[name.data()] = new_stat_block;
             return new_stat_block;
         }
     }
@@ -432,3 +525,9 @@ std::shared_ptr<const StatBlock> StatBlock::Get(const std::string_view & name)
         return iter->second.lock();
 }
 
+StatBlock::~StatBlock()
+{
+    // Rider effects are generated per stat block and need to be cleaned up.
+    for (auto rider_effect : HitRiders)
+        delete rider_effect.Effect;
+}

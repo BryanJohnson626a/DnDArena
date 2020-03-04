@@ -27,7 +27,10 @@ Stat ToStat(const std::string & s)
 DamageType ToDamageType(const std::string & s)
 {
     if (s == "Slashing") return Slashing;
+    else if (s == "MagicalSlashing") return MagicalSlashing;
     else if (s == "Bludgeoning") return Bludgeoning;
+    else if (s == "MagicalBludgeoning") return MagicalBludgeoning;
+    else if (s == "MagicalPiercing") return MagicalPiercing;
     else if (s == "Piercing") return Piercing;
     else if (s == "Fire") return Fire;
     else if (s == "Cold") return Cold;
@@ -79,8 +82,7 @@ nlohmann::json OpenJson(const std::filesystem::path & path)
     return js;
 }
 
-template<class T>
-void Import(const nlohmann::json & js, T & target, const char * key)
+template<class T> void Import(const nlohmann::json & js, T & target, const char * key)
 {
     try
     {
@@ -145,6 +147,13 @@ void from_json(const nlohmann::json & js, RiderEffect & rider_effect)
     Import(js, rider_effect.Uses, "Uses");
 }
 
+void from_json(const nlohmann::json & js, DamageType & type)
+{
+    std::string type_name;
+    Import(js, type_name, "Type");
+    type = ToDamageType(type_name);
+}
+
 bool Invalid(const ActionInstance & a)
 {
     return a.Action == nullptr;
@@ -182,6 +191,10 @@ void from_json(const nlohmann::json & js, StatBlock *& stat_block)
     Import(js, stat_block->SaveWIS, "SaveWIS");
     Import(js, stat_block->SaveCHA, "SaveCHA");
     Import(js, stat_block->Crit, "Crit");
+    Import(js, stat_block->Resistances, "Resistances");
+    Import(js, stat_block->Immunities, "Immunities");
+    Import(js, stat_block->ConditionImmunities, "ConditionImmunities");
+    Import(js, stat_block->MagicResistance, "MagicResistance");
     Import(js, stat_block->Actions, "Actions");
     Import(js, stat_block->BonusActions, "BonusActions");
     Import(js, stat_block->HitRiders, "HitRiders");
@@ -259,6 +272,8 @@ void from_json(const nlohmann::json & js, WeaponAttack & action)
     Import(js, die_size, "DamageDiceSize");
     action.DamageDie = Die::Get(die_size);
     std::string damage_type;
+    Import(js, action.DamageBonus, "DamageBonus");
+    Import(js, action.HitBonus, "HitBonus");
     Import(js, damage_type, "DamageType");
     action.DamageType = ToDamageType(damage_type);
 }
@@ -301,6 +316,7 @@ void from_json(const nlohmann::json & js, Spell & action)
     action.SavingThrow = ToStat(stat_name);
     Import(js, action.SpellAttack, "SpellAttack");
     Import(js, action.Concentration, "Concentration");
+    action.Properties[IsSpell] = 1;
 }
 
 Action * LoadSpell(const nlohmann::json & js)
@@ -437,6 +453,21 @@ Effect * LoadEffectDamage(const nlohmann::json & js)
     return effect;
 }
 
+void from_json(const nlohmann::json & js, SaveEffect & effect)
+{
+    Import(js, effect.DC, "DC");
+    Import(js, effect.SavingThrow, "SavingThrow");
+    Import(js, effect.HitEffects, "HitEffects");
+    Import(js, effect.MissEffects, "MissEffects");
+}
+
+Effect * LoadEffectSaveEffect(const nlohmann::json & js)
+{
+    auto * effect = new SaveEffect();
+    js.get_to(*effect);
+    return effect;
+}
+
 Effect * LoadEffect(const nlohmann::json & js)
 {
     std::string type;
@@ -449,6 +480,7 @@ Effect * LoadEffect(const nlohmann::json & js)
     else if (type == "DamageBonus") effect = LoadEffectOngoingDamageBonus(js);
     else if (type == "Resistance") effect = LoadEffectOngoingResistance(js);
     else if (type == "UsableAction") effect = LoadEffectUsableAction(js);
+    else if (type == "SaveEffect") effect = LoadEffectSaveEffect(js);
 
     if (effect == nullptr)
     {

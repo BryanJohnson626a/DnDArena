@@ -9,7 +9,7 @@ class Effect
 {
 public:
     virtual ~Effect() = default;
-    virtual void DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const = 0;
+    virtual bool DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const = 0;
     // Undoes whatever modifiers the effect granted.
     virtual void EndEffect(Actor * effected) const = 0;
 };
@@ -17,8 +17,10 @@ public:
 class EffectHealing : public Effect
 {
 public:
-    void DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
-    void EndEffect(Actor * effected) const override {};
+    bool DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
+
+    void EndEffect(Actor * effected) const override
+    {};
 
     int HealingDieNum{0};
     Die * HealingDie{nullptr};
@@ -30,8 +32,10 @@ public:
 class EffectExtraActions : public Effect
 {
 public:
-    void DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
-    void EndEffect(Actor * effected) const override {};
+    bool DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
+
+    void EndEffect(Actor * effected) const override
+    {};
 
     int ExtraActions{0};
     int ExtraBonusActions{0};
@@ -40,8 +44,10 @@ public:
 class EffectDamage : public Effect
 {
 public:
-    void DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
-    void EndEffect(Actor * effected) const override {};
+    bool DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
+
+    void EndEffect(Actor * effected) const override
+    {};
 
     int DamageDieNum{0};
     Die * DamageDie{nullptr};
@@ -53,7 +59,7 @@ public:
 class OngoingDamageBonus : public Effect
 {
 public:
-    void DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
+    bool DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
     void EndEffect(Actor * effected) const override;
 
     int BonusDamage{0};
@@ -62,7 +68,7 @@ public:
 class OngoingResistance : public Effect
 {
 public:
-    void DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
+    bool DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
     void EndEffect(Actor * effected) const override;
 
     DamageType ResistanceType{InvalidDamageType};
@@ -72,10 +78,24 @@ class UsableAction : public Effect
 {
 public:
     ~UsableAction() override;
-    void DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
+    bool DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
     void EndEffect(Actor * effected) const override;
 
     ActionInstance * ActionInst;
     std::string ActionType;
+
+};
+
+class SaveEffect : public Effect
+{
+public:
+    ~SaveEffect() override;
+    bool DoEffect(Actor & user, Actor * target, bool critical, Stat key_stat) const override;
+    void EndEffect(Actor * effected) const override;
+
+    int DC{0};
+    Stat SavingThrow{None};
+    std::vector<Effect *> HitEffects;
+    std::vector<Effect *> MissEffects;
 };
 

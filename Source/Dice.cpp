@@ -9,7 +9,7 @@
 #include "Dice.h"
 #include "Output.h"
 
-bool Die::dice_output = false;
+bool Die::dice_output = true;
 
 Die D0(0, 0);
 Die D1(1);
@@ -70,7 +70,7 @@ int Die::Roll(int times)
     {
         int roll = roller(generator);
         if (i > 0)
-            if (dice_output) OUT_ALL << " ";
+            if (dice_output) OUT_ALL << "+";
         if (dice_output) OUT_ALL << roll;
         result += roll;
     }
@@ -114,7 +114,7 @@ int Die::Roll(int times, int keep, bool low)
     {
         result += kept[i];
         if (i > 0)
-            if (dice_output) OUT_ALL << " ";
+            if (dice_output) OUT_ALL << "+";
         if (dice_output) OUT_ALL << kept[i];
     }
 

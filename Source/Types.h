@@ -6,12 +6,17 @@
 
 #include <vector>
 #include <forward_list>
+#include <bitset>
 
 enum DamageType
 {
+    InvalidDamageType,
     Slashing,
+    MagicalSlashing,
     Bludgeoning,
+    MagicalBludgeoning,
     Piercing,
+    MagicalPiercing,
     Fire,
     Cold,
     Lightning,
@@ -23,7 +28,6 @@ enum DamageType
     Psychic,
     Force,
     DamageTypesMax,
-    InvalidDamageType,
 };
 
 enum Stat
@@ -57,6 +61,15 @@ enum DeathState
     Dead,
 };
 
+enum PropertyFlags
+{
+    IsSpell,
+    placeholder1,
+    placeholder2,
+    placeholder3,
+    MaxSaveFlags
+};
+
 class StatBlock;
 class Arena;
 class Group;
@@ -71,3 +84,4 @@ class Die;
 using Groups = std::vector<Group>;
 using ActorPtrs = std::vector<Actor *>;
 using ActionList = std::forward_list<ActionInstance>;
+using PropertyField = std::bitset<MaxSaveFlags>;

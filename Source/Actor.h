@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <forward_list>
+#include <bitset>
 
 #include "Types.h"
 
@@ -35,6 +36,7 @@ public:
  */
 struct StatBlock
 {
+    ~StatBlock();
 
     void CalculateDerivedStats();
 
@@ -77,13 +79,17 @@ struct StatBlock
             STRSaveMod, DEXSaveMod, CONSaveMod,
             INTSaveMod, WISSaveMod, CHASaveMod;
 
+    std::vector<DamageType> Resistances;
+    std::vector<DamageType> Immunities;
+    std::vector<std::string> ConditionImmunities;
+    bool MagicResistance{false};
     std::vector<ActionInstance> Actions;
     std::vector<ActionInstance> BonusActions;
     std::vector<RiderEffect> HitRiders;
 
-    static std::shared_ptr<const StatBlock> Get(const std::string_view & name);
+    [[nodiscard]] static std::shared_ptr<const StatBlock> Get(const std::string_view & name);
 
-    static std::map<std::string_view, std::weak_ptr<const StatBlock>> StatBlockMap;
+    static std::map<std::string, std::weak_ptr<const StatBlock>> StatBlockMap;
 };
 
 /**
@@ -117,17 +123,14 @@ public:
     ~Actor();
 
     void Initialize();
-
+    void RollInitiative();
+    void RollHealth();
     void ResetInfo();
-
     void TakeTurn();
-
     bool TakeAction();
-
     bool TakeBonusAction();
-
+    bool DoWeaponAttack();
     int TakeDamage(int damage, DamageType damage_type, Actor & damager);
-
     void DeathSave();
 
     [[nodiscard]] ActionInstance * ChooseAction(ActionList & actions) const;
@@ -136,12 +139,14 @@ public:
     [[nodiscard]] bool Conscious() const;
     [[nodiscard]] int CurrentHP() const;
     [[nodiscard]] int MaxHP() const;
-    [[nodiscard]] bool IsInjured() const;
+    [[nodiscard]] bool IsBloodied() const;
     [[nodiscard]] const Statistics & Info();
     [[nodiscard]] int GetStatMod(enum Stat stat) const;
     [[nodiscard]] int GetDamageBonus() const;
     [[nodiscard]] bool HasResistance(DamageType damage_type) const;
+    [[nodiscard]] bool HasImmunity(DamageType damage_type) const;
     [[nodiscard]] int GetSave(Stat stat);
+    [[nodiscard]] bool MakeSave(Stat stat, int dc, Actor & instigator, PropertyField properties = 0);
     [[nodiscard]] bool CanConcentrate() const;
 
     void AddResistance(DamageType damage_type);
@@ -171,6 +176,7 @@ public:
     OngoingAction * ConcentrationSpell{nullptr};
 private:
     int TempResistance[DamageTypesMax]{0};
+    int TempImmunity[DamageTypesMax]{0};
     std::vector<OngoingAction *> OngoingActions;
     int HP{}, HPMax{};
     DeathState State{DeathState::Conscious};

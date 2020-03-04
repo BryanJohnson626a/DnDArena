@@ -15,7 +15,13 @@
 void Arena::DoBattles(int trials)
 {
     for (int i = 0; i < trials; ++i)
-        DoBattle();
+    {
+        int winner = DoBattle();
+        if (winner == 0)
+        {
+            //std::cin.get();
+        }
+    }
 
     OUT_TRIALS << std::endl;
 
@@ -29,16 +35,11 @@ int Arena::DoBattle()
     RollInitiative();
     ++Battles;
 
-    OUT_ALL << *this << std::endl << std::endl << InitiativeQueue << std::endl;
-
-    Die::dice_output = true;
-
     while (GroupsConscious() > 1)
     {
         OUT_ALL << *this << std::endl;
         DoRound();
     }
-    Die::dice_output = false;
 
     OUT_TRIALS << *this << std::endl;
     OUT_ALL << std::endl;
@@ -102,6 +103,12 @@ void Arena::RollInitiative()
 {
     for (Actor * actor : InitiativeQueue)
         actor->Initialize();
+
+    for (Actor * actor : InitiativeQueue)
+        actor->RollHealth();
+
+    for (Actor * actor : InitiativeQueue)
+        actor->RollInitiative();
 
     std::sort(InitiativeQueue.begin(), InitiativeQueue.end(), CompareInitiative);
 }
@@ -194,15 +201,18 @@ float Arena::Report(enum ReportType type, std::string_view target)
                         break;
                     case AttacksMissed:
                         total += (float) a.InfoStats.AttacksMissed;
-                        OUT_RESULTS << a.Name << " Missed " << Comma(a.InfoStats.AttacksMissed) << " times." << std::endl;
+                        OUT_RESULTS << a.Name << " Missed " << Comma(a.InfoStats.AttacksMissed) << " times."
+                                    << std::endl;
                         break;
                     case AttacksReceived:
                         total += (float) a.InfoStats.AttacksReceived;
-                        OUT_RESULTS << a.Name << " was hit " << Comma(a.InfoStats.AttacksReceived) << " times." << std::endl;
+                        OUT_RESULTS << a.Name << " was hit " << Comma(a.InfoStats.AttacksReceived) << " times."
+                                    << std::endl;
                         break;
                     case AttacksAvoided:
                         total += (float) a.InfoStats.AttacksAvoided;
-                        OUT_RESULTS << a.Name << " was missed " << Comma(a.InfoStats.AttacksAvoided) << " times." << std::endl;
+                        OUT_RESULTS << a.Name << " was missed " << Comma(a.InfoStats.AttacksAvoided) << " times."
+                                    << std::endl;
                         break;
                     case CritsLanded:
                         total += (float) a.InfoStats.CritsLanded;

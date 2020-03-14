@@ -31,7 +31,7 @@
   },
   "MultiAttack": {
     "Type": "MultiAction",
-    "Name": "MultiAttack",
+    "Name": "Extra Attack",
     "Target": "Enemy",
     "Actions": [
       {

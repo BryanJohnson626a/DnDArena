@@ -12,7 +12,7 @@
 int main()
 {
     Output::Out().SetLevel(AllOutput);
-    Output::Out().SetDelay(200);
+    Output::Out().SetDelay(250);
 
     Arena BG;
     BG.AddTeam("Team A");
@@ -39,6 +39,22 @@ int main()
     BG.Initialize();
     BG.DoBattles(1);
 
+    BG.Report(DamageDone, "Alice");
+    BG.Report(DamageDone, "Bob");
+    BG.Report(DamageDone, "Carol");
+
+    std::cout << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::cout << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    Output::Out().SetDelay(0);
+    Output::Out().SetLevel(Results);
+
+    BG.Initialize();
+    BG.DoBattles(100000);
+
+    std::cout << std::endl;
+    Output::Out().SetDelay(500);
     BG.Report(KOsKOedRatio, "Player");
     BG.Report(KDRatio, "Player");
     BG.Report(KOs, "Player");
@@ -52,5 +68,6 @@ int main()
 
     // No output needed for destructors.
     Output::Out().SetLevel(NoOutput);
+
     return 0;
 }

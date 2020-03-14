@@ -81,7 +81,7 @@ struct StatBlock
 
     std::vector<DamageType> Resistances;
     std::vector<DamageType> Immunities;
-    std::vector<std::string> ConditionImmunities;
+    std::array<bool, MaxConditions> ConditionImmunities;
     bool MagicResistance{false};
     std::vector<ActionInstance> Actions;
     std::vector<ActionInstance> BonusActions;
@@ -145,15 +145,21 @@ public:
     [[nodiscard]] int GetDamageBonus() const;
     [[nodiscard]] bool HasResistance(DamageType damage_type) const;
     [[nodiscard]] bool HasImmunity(DamageType damage_type) const;
+    [[nodiscard]] bool HasCondition(Condition condition) const;
+    [[nodiscard]] bool HasImmunity(Condition condition) const;
     [[nodiscard]] int GetSave(Stat stat);
     [[nodiscard]] bool MakeSave(Stat stat, int dc, Actor & instigator, PropertyField properties = 0);
     [[nodiscard]] bool CanConcentrate() const;
 
     void AddResistance(DamageType damage_type);
     void RemoveResistance(DamageType damage_type);
+    bool AddCondition(Condition condition);
+    bool RemoveCondition(Condition condition);
 
     bool AddOngoingAction(const Action * action, ActorPtrs hit_targets,
                           ActorPtrs missed_targets, bool concentration = false);
+    bool AddOngoingEffect(const RepeatingEffect * repeating_effect, Actor * instigator);
+    void UpdateOngoingEffects(const std::string & timing);
 
     /**
      * Restores health to the actor, limited by max HP.
@@ -174,6 +180,8 @@ public:
     Arena & CurrentArena;
     int TempDamageBonus = 0;
     OngoingAction * ConcentrationSpell{nullptr};
+    std::array<int, MaxConditions> CurrentConditions;
+    std::vector<RepeatingEffect *> OngoingEffects;
 private:
     int TempResistance[DamageTypesMax]{0};
     int TempImmunity[DamageTypesMax]{0};

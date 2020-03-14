@@ -28,6 +28,7 @@ enum DamageType
     Psychic,
     Force,
     DamageTypesMax,
+    Untyped
 };
 
 enum Stat
@@ -39,6 +40,7 @@ enum Stat
     Intelligence,
     Wisdom,
     Charisma,
+    InvalidStat
 };
 
 enum SizeCategory
@@ -61,13 +63,31 @@ enum DeathState
     Dead,
 };
 
-enum PropertyFlags
+enum PropertyFlag
 {
     IsSpell,
-    placeholder1,
-    placeholder2,
-    placeholder3,
     MaxSaveFlags
+};
+
+enum Condition
+{
+    Blinded,
+    Charmed,
+    Deafened,
+    Frightened,
+    Grappled,
+    Incapacitated,
+    Invisible,
+    Paralyzed,
+    Petrified,
+    Poisoned,
+    Prone,
+    Restrained,
+    Stunned,
+    Unconscious,
+    NoHealing,
+    MaxConditions,
+    InvalidCondition
 };
 
 class StatBlock;
@@ -79,6 +99,7 @@ class Spell;
 class OngoingAction;
 class ActionInstance;
 class Effect;
+class RepeatingEffect;
 class Die;
 
 using Groups = std::vector<Group>;

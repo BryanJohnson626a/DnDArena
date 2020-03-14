@@ -65,7 +65,7 @@ public:
 #define OUT_ALL {if(Output::Out().CheckLevel(AllActions)) Output::Out().GetStream()
 #define OUT_HP {if (Output::Out().CheckLevel(AllHPChanges)) Output::Out().GetStream()
 #define ALL_CONT ;}
-#define ALL_ENDL << std::endl; std::this_thread::sleep_for(Output::Out().MessageDelay);}
+#define ALL_ENDL << std::endl; Output::Out().GetStream().flush(); std::this_thread::sleep_for(Output::Out().MessageDelay);}
 
 std::ostream & operator<<(std::ostream & out, const Arena & arena);
 std::ostream & operator<<(std::ostream & out, const Group & group);

@@ -56,11 +56,17 @@ void Actor::Initialize()
     FailedDeathSaves = 0;
     State = DeathState::Conscious;
     ConcentrationSpell = nullptr;
+    CurrentConditions.fill(0);
 
     // Remove any spell instances still active.
     for (auto & spell_inst : OngoingActions)
         delete spell_inst;
     OngoingActions.clear();
+
+    // Remove any ongoing effects still active.
+    for (auto ongoing_effect : OngoingEffects)
+        delete ongoing_effect;
+    OngoingEffects.clear();
 
     ActionQueue.clear();
     for (auto iter = Stats->Actions.rbegin(); iter != Stats->Actions.rend(); ++iter)
@@ -73,6 +79,7 @@ void Actor::Initialize()
     HitRiders.clear();
     for (auto hit_rider : Stats->HitRiders)
         HitRiders.emplace_back(hit_rider);
+
 }
 
 void Actor::RollInitiative()
@@ -84,17 +91,16 @@ void Actor::RollInitiative()
 
 void Actor::RollHealth()
 {
-
     OUT_ALL << Name << " rolls health: " ALL_CONT
+    HPMax = 0;
     if (Stats->Heroic)
     {
-        HPMax = Stats->HDSize + Stats->CON;
-        HPMax += Stats->HD->RollMod(Stats->CON * (Stats->HDNum - 1) + Stats->HDSize, Stats->HDNum - 1);
+        int mod = Stats->CON * Stats->HDNum + Stats->HDSize;
+        HPMax += Stats->HD->RollMod(mod, Stats->HDNum - 1);
         HP = HPMax;
     }
     else
     {
-        HPMax = 0;
         HPMax += Stats->HD->RollMod(Stats->CON * Stats->HDNum, Stats->HDNum);
         HP = HPMax;
     }
@@ -128,6 +134,8 @@ bool Expired(const OngoingAction & spell)
 
 void Actor::TakeTurn()
 {
+    UpdateOngoingEffects("StartOfTurn");
+
     if (HP == 0 && Alive())
         DeathSave();
 
@@ -140,6 +148,8 @@ void Actor::TakeTurn()
         if (!used_bonus_action)
             TakeBonusAction();
     }
+
+    UpdateOngoingEffects("EndOfTurn");
 
     // Tick down the duration of any active spells.
     for (auto & spell_inst : OngoingActions)
@@ -214,7 +224,7 @@ ActionInstance * Actor::ChooseAction(ActionList & actions) const
 
 int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
 {
-    if (HasImmunity(damage_type))
+    if (damage_type != Untyped && HasImmunity(damage_type))
         return 0;
 
     if (State == Dying)
@@ -235,7 +245,7 @@ int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
         return 0;
     }
 
-    if (HasResistance(damage_type))
+    if (damage_type != Untyped && HasResistance(damage_type))
         damage /= 2;
 
     HP -= damage;
@@ -250,9 +260,9 @@ int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
             HP = 0;
             State = DeathState::Dead;
             if (Stats->Heroic)
-            OUT_ALL << "            " << Name << " dies instantly!" ALL_ENDL
+            {OUT_ALL << "            " << Name << " dies instantly!" ALL_ENDL}
             else
-            OUT_ALL << "            " << Name << " dies." ALL_ENDL
+            {OUT_ALL << "            " << Name << " dies." ALL_ENDL}
 
             ++InfoStats.Deaths;
             ++damager.InfoStats.Kills;
@@ -268,40 +278,41 @@ int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
             State = DeathState::Dying;
             OUT_ALL << "            " << Name << " has fallen!" ALL_ENDL
 
-                ++InfoStats.KOed;
-                ++damager.InfoStats.KOs;
-            }
+            ++InfoStats.KOed;
+            ++damager.InfoStats.KOs;
         }
-        else
-            OUT_HP << "            " << Name << " has " << HP << "/" << HPMax << " HP remaning." ALL_ENDL
-
-
-        damager.InfoStats.DamageDone += damage;
-        InfoStats.DamageTaken += damage;
-
-        return damage;
+    }
+    else
+    {
+        OUT_HP << "            " << Name << " has " << HP << "/" << HPMax << " HP remaning." ALL_ENDL
     }
 
-    int Actor::CurrentHP() const
-    {
-        return HP;
-    }
+    damager.InfoStats.DamageDone += damage;
+    InfoStats.DamageTaken += damage;
 
-    void Actor::DeathSave()
+    return damage;
+}
+
+int Actor::CurrentHP() const
+{
+    return HP;
+}
+
+void Actor::DeathSave()
+{
+    if (SuccessfulDeathSaves < 3 && FailedDeathSaves < 3)
     {
-        if (SuccessfulDeathSaves < 3 && FailedDeathSaves < 3)
+        OUT_ALL << "    " << Name << " makes a death saving throw: " ALL_CONT
+        int roll = D20.Roll();
+        if (roll == 20)
         {
-            OUT_ALL << "    " << Name << " makes a death saving throw: " ALL_CONT
-            int roll = D20.Roll();
-            if (roll == 20)
-            {
-                // Miracluous Recovery.
-                HP = 1;
-                SuccessfulDeathSaves = 0;
-                FailedDeathSaves = 0;
-                State = DeathState::Conscious;
-                OUT_ALL << " Critical Success!" ALL_ENDL
-                OUT_ALL << "        " << Name << " recovers!" ALL_ENDL
+            // Miracluous Recovery.
+            HP = 1;
+            SuccessfulDeathSaves = 0;
+            FailedDeathSaves = 0;
+            State = DeathState::Conscious;
+            OUT_ALL << " Critical Success!" ALL_ENDL
+            OUT_ALL << "        " << Name << " recovers!" ALL_ENDL
             return;
         }
         else if (roll >= 10)
@@ -368,9 +379,16 @@ int Actor::GetStatMod(enum Stat stat) const
 
 int Actor::Heal(int amount)
 {
+    if (HasCondition(NoHealing))
+        return 0;
+
+    // Reduce healing done to difference between HP and HPMax if
+    // healing amount would over-heal the actor.
     if (amount + HP > HPMax)
         amount = HPMax - HP;
+
     HP += amount;
+
     return amount;
 }
 
@@ -497,9 +515,92 @@ bool Actor::MakeSave(Stat stat, int dc, Actor & instigator, PropertyField proper
         InfoStats.SavesMade++;
         instigator.InfoStats.ForcedSavesMade++;
 
-        OUT_ALL << " Saved!" ALL_ENDL;
+        OUT_ALL << " Saved!" ALL_ENDL
         return true;
     }
+}
+
+bool Actor::AddCondition(Condition condition)
+{
+    if (condition >= MaxConditions || condition < 0)
+    {
+        OUT_ERROR << Name << " inflicted with invalid condition \"" << condition << "\"." << ERROR_END
+        return false;
+    }
+    if (HasImmunity(condition))
+        return false;
+
+    ++CurrentConditions[condition];
+    return true;
+}
+
+bool Actor::RemoveCondition(Condition condition)
+{
+    // If actor is immune, we couldn't have gotten the condition in the first place.
+    if (!HasImmunity(condition))
+        --CurrentConditions[condition];
+    if (CurrentConditions[condition] < 0)
+        CurrentConditions[condition] = 0;
+    return CurrentConditions[condition] == 0;
+}
+
+bool Actor::HasImmunity(Condition condition) const
+{
+    return Stats->ConditionImmunities[condition];
+}
+
+bool Actor::HasCondition(Condition condition) const
+{
+    return CurrentConditions[condition] > 0;
+}
+
+bool Actor::AddOngoingEffect(const RepeatingEffect * repeating_effect, Actor * instigator)
+{
+    auto new_effect = new RepeatingEffect{*repeating_effect};
+    new_effect->Instigator = instigator;
+    OngoingEffects.emplace_back(new_effect);
+
+    for (const Effect * eff : new_effect->DurationEffects)
+        eff->DoEffect(*instigator, this, false, None);
+
+    return true;
+}
+
+void Actor::UpdateOngoingEffects(const std::string & timing)
+{
+    // Update all effects that tick at the given timing.
+    for (RepeatingEffect *& repeating_effect : OngoingEffects)
+        if (repeating_effect->Timing == timing)
+        {
+            --repeating_effect->Duration;
+
+            // Setting duration to 0 causes both time-limited (positive)
+            // and time-unlimited (negative) effects to be removed.
+            if (repeating_effect->SavingThrow != None &&
+                MakeSave(repeating_effect->SavingThrow, repeating_effect->DC, *repeating_effect->Instigator))
+            {
+                repeating_effect->Duration = 0;
+            }
+            else
+            {
+                for (const Effect * eff : repeating_effect->RepeatingEffects)
+                    eff->DoEffect(*repeating_effect->Instigator, this, false, None);
+            }
+
+            // We check if == 0 not < 0 so that negative durations are infinite.
+            if (repeating_effect->Duration == 0)
+            {
+                for (const Effect * eff : repeating_effect->DurationEffects)
+                    eff->EndEffect(this);
+                delete repeating_effect;
+                repeating_effect = nullptr;
+
+            }
+        }
+
+    // Clean up deleted effects.
+    OngoingEffects.erase(std::remove(OngoingEffects.begin(), OngoingEffects.end(), nullptr),
+                         OngoingEffects.end());
 }
 
 std::shared_ptr<const StatBlock> StatBlock::Get(const std::string_view & name)

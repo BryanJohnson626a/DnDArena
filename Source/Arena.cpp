@@ -14,6 +14,8 @@
 
 void Arena::DoBattles(int trials)
 {
+    OUT_RESULTS << "Now performing " << trials << " trials..." ALL_ENDL
+
     for (int i = 0; i < trials; ++i)
     {
         int winner = DoBattle();
@@ -173,39 +175,48 @@ float Arena::Report(enum ReportType type, std::string_view target)
                 {
                     case Kills:
                         total += (float) a.InfoStats.Kills;
-                        OUT_RESULTS << a.Name << " killed " << Comma(a.InfoStats.Kills) << " enemies." ALL_ENDL
+                        OUT_RESULTS << a.Name << " killed " << Comma(a.InfoStats.Kills)
+                                    << " enemies." ALL_ENDL
                         break;
                     case KOs:
                         total += (float) a.InfoStats.KOs;
-                        OUT_RESULTS << a.Name << " KOed " << Comma(a.InfoStats.KOs) << " enemies." ALL_ENDL
+                        OUT_RESULTS << a.Name << " KOed " << Comma(a.InfoStats.KOs)
+                                    << " enemies." ALL_ENDL
                         break;
                     case Deaths:
                         total += (float) a.InfoStats.Deaths;
-                        OUT_RESULTS << a.Name << " died " << Comma(a.InfoStats.Deaths) << " times." ALL_ENDL
+                        OUT_RESULTS << a.Name << " died " << Comma(a.InfoStats.Deaths)
+                                    << " times." ALL_ENDL
                         break;
                     case KOed:
                         total += (float) a.InfoStats.KOed;
-                        OUT_RESULTS << a.Name << " was KOed " << Comma(a.InfoStats.KOed) << " times." ALL_ENDL
+                        OUT_RESULTS << a.Name << " was KOed " << Comma(a.InfoStats.KOed)
+                                    << " times." ALL_ENDL
                         break;
                     case DamageDone:
                         total += (float) a.InfoStats.DamageDone;
-                        OUT_RESULTS << a.Name << " did " << Comma(a.InfoStats.DamageDone) << " damage." ALL_ENDL
+                        OUT_RESULTS << a.Name << " did " << Comma(a.InfoStats.DamageDone)
+                                    << " damage." ALL_ENDL
                         break;
                     case DamageTaken:
                         total += (float) a.InfoStats.DamageTaken;
-                        OUT_RESULTS << a.Name << " took " << Comma(a.InfoStats.DamageTaken) << " damage." ALL_ENDL
+                        OUT_RESULTS << a.Name << " took " << Comma(a.InfoStats.DamageTaken)
+                                    << " damage." ALL_ENDL
                         break;
                     case AttacksLanded:
                         total += (float) a.InfoStats.AttacksLanded;
-                        OUT_RESULTS << a.Name << " Hit " << Comma(a.InfoStats.AttacksLanded) << " times." ALL_ENDL
+                        OUT_RESULTS << a.Name << " Hit " << Comma(a.InfoStats.AttacksLanded)
+                                    << " times." ALL_ENDL
                         break;
                     case AttacksMissed:
                         total += (float) a.InfoStats.AttacksMissed;
-                        OUT_RESULTS << a.Name << " Missed " << Comma(a.InfoStats.AttacksMissed) << " times." ALL_ENDL
+                        OUT_RESULTS << a.Name << " Missed " << Comma(a.InfoStats.AttacksMissed)
+                                    << " times." ALL_ENDL
                         break;
                     case AttacksReceived:
                         total += (float) a.InfoStats.AttacksReceived;
-                        OUT_RESULTS << a.Name << " was hit " << Comma(a.InfoStats.AttacksReceived) << " times." ALL_ENDL
+                        OUT_RESULTS << a.Name << " was hit " << Comma(a.InfoStats.AttacksReceived)
+                                    << " times." ALL_ENDL
                         break;
                     case AttacksAvoided:
                         total += (float) a.InfoStats.AttacksAvoided;
@@ -219,8 +230,8 @@ float Arena::Report(enum ReportType type, std::string_view target)
                         break;
                     case CritsReceived:
                         total += (float) a.InfoStats.CritsReceived;
-                        OUT_RESULTS << a.Name << " was critically hit " << Comma(a.InfoStats.CritsReceived) << " times."
-                        ALL_ENDL
+                        OUT_RESULTS << a.Name << " was critically hit " << Comma(a.InfoStats.CritsReceived)
+                                    << " times." ALL_ENDL
                         break;
                     case SurvivalRate:
                         total += 1 - (float(a.InfoStats.Deaths) / float(NumBattles()));
@@ -236,14 +247,12 @@ float Arena::Report(enum ReportType type, std::string_view target)
                             if (kd > 1)
                             {
                                 OUT_RESULTS << a.Name << "'s KOs/KOed was " << std::setprecision(2) << kd
-                                            << "/1."
-                                ALL_ENDL
+                                            << "/1." ALL_ENDL
                             }
                             else
                             {
                                 OUT_RESULTS << a.Name << "'s KOs/KOed was 1/" << std::setprecision(2)
-                                            << 1.f / kd << "."
-                                ALL_ENDL
+                                            << 1.f / kd << "." ALL_ENDL
                             }
                         }
                         else if (a.InfoStats.KOs > 0)
@@ -257,11 +266,11 @@ float Arena::Report(enum ReportType type, std::string_view target)
                             float kd = float(a.InfoStats.Kills) / float(a.InfoStats.Deaths);
                             total += kd;
                             if (kd > 1)
-                            OUT_RESULTS << a.Name << "'s K/D was " << std::setprecision(2) << kd << "/1."
-                            ALL_ENDL
+                            OUT_RESULTS << a.Name << "'s K/D was " <<
+                                        std::setprecision(2) << kd << "/1." ALL_ENDL
                             else
-                            OUT_RESULTS << a.Name << "'s K/D was 1/" << std::setprecision(2) << 1.f / kd << "."
-                            ALL_ENDL
+                            OUT_RESULTS << a.Name << "'s K/D was 1/" <<
+                                        std::setprecision(2) << 1.f / kd << "." ALL_ENDL
                         }
                         else if (a.InfoStats.Kills > 0)
                         OUT_RESULTS << a.Name << "'s K/D was perfect." ALL_ENDL

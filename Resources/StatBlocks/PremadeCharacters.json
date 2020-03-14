@@ -9,7 +9,7 @@
     "Proficiency": 3,
     "InitiativeBonus": 0,
     "ArmorValue": 6,
-    "ShieldValue": 2,
+    "ShieldValue": 0,
     "AttackBonus": 0,
     "DamageBonus": 2,
     "Strength": 18,
@@ -35,7 +35,7 @@
       },
       {
         "Action": {
-          "Name": "Longsword"
+          "Name": "+1Greatsword"
         },
         "Uses": -1,
         "KeyStat": "Strength"
@@ -68,7 +68,7 @@
     "Proficiency": 3,
     "InitiativeBonus": 0,
     "ArmorValue": 6,
-    "ShieldValue": 2,
+    "ShieldValue": 0,
     "AttackBonus": 0,
     "DamageBonus": 2,
     "Strength": 18,
@@ -114,6 +114,13 @@
         },
         "Uses": 1,
         "KeyStat": "None"
+      },
+      {
+        "Action": {
+          "Name": "Sunblade"
+        },
+        "Uses": -1,
+        "KeyStat": "Strength"
       }
     ],
     "HitRiders": [
@@ -125,7 +132,7 @@
           "DamageDieSize": 8,
           "DamageBonus": 0,
           "DamageMultiplier": 1,
-          "DamageType": "Slashing"
+          "DamageType": "Radiant"
         },
         "Uses": 4
       }

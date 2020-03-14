@@ -26,7 +26,8 @@ Stat ToStat(const std::string & s)
 
 DamageType ToDamageType(const std::string & s)
 {
-    if (s == "Slashing") return Slashing;
+    if (s == "Untyped") return Untyped;
+    else if (s == "Slashing") return Slashing;
     else if (s == "MagicalSlashing") return MagicalSlashing;
     else if (s == "Bludgeoning") return Bludgeoning;
     else if (s == "MagicalBludgeoning") return MagicalBludgeoning;
@@ -55,6 +56,26 @@ SizeCategory ToSizeCategory(const std::string & s)
     else if (s == "Huge") return Huge;
     else if (s == "Gargantuan") return Gargantuan;
     else return InvalidSize;
+}
+
+Condition ToCondition(const std::string & s)
+{
+    if (s == "Blinded") return Blinded;
+    else if (s == "Charmed") return Charmed;
+    else if (s == "Deafened") return Deafened;
+    else if (s == "Frightened") return Frightened;
+    else if (s == "Grappled") return Grappled;
+    else if (s == "Incapacitated") return Incapacitated;
+    else if (s == "Invisible") return Invisible;
+    else if (s == "Paralyzed") return Paralyzed;
+    else if (s == "Petrified") return Petrified;
+    else if (s == "Poisoned") return Poisoned;
+    else if (s == "Prone") return Prone;
+    else if (s == "Restrained") return Restrained;
+    else if (s == "Stunned") return Stunned;
+    else if (s == "Unconscious") return Unconscious;
+    else if (s == "NoHealing") return NoHealing;
+    else return InvalidCondition;
 }
 
 Action * LoadSpecial(const nlohmann::json & js);
@@ -193,11 +214,24 @@ void from_json(const nlohmann::json & js, StatBlock *& stat_block)
     Import(js, stat_block->Crit, "Crit");
     Import(js, stat_block->Resistances, "Resistances");
     Import(js, stat_block->Immunities, "Immunities");
-    Import(js, stat_block->ConditionImmunities, "ConditionImmunities");
     Import(js, stat_block->MagicResistance, "MagicResistance");
     Import(js, stat_block->Actions, "Actions");
     Import(js, stat_block->BonusActions, "BonusActions");
     Import(js, stat_block->HitRiders, "HitRiders");
+
+    std::vector<std::string> immunities;
+    Import(js, immunities, "ConditionImmunities");
+    stat_block->ConditionImmunities.fill(0);
+    for (auto s : immunities)
+    {
+        Condition c = ToCondition(s);
+        if (c == InvalidCondition)
+        {
+            OUT_WARNING << stat_block << " has invalid condition immunity \"" << s << "\"." WARNING_END
+        }
+        else
+            stat_block->ConditionImmunities[c] = true;
+    }
 
 
     // Remove any invalid actions or bonus actions.
@@ -407,19 +441,19 @@ void from_json(const nlohmann::json & js, UsableAction & effect)
     Import(js, effect.ActionType, "ActionType");
 }
 
-void from_json(const nlohmann::json & js, OngoingDamageBonus & effect)
+void from_json(const nlohmann::json & js, DamageBonusEffect & effect)
 {
     Import(js, effect.BonusDamage, "BonusDamage");
 }
 
 Effect * LoadEffectOngoingDamageBonus(const nlohmann::json & js)
 {
-    auto * effect = new OngoingDamageBonus();
+    auto * effect = new DamageBonusEffect();
     js.get_to(*effect);
     return effect;
 }
 
-void from_json(const nlohmann::json & js, OngoingResistance & effect)
+void from_json(const nlohmann::json & js, ResistanceEffect & effect)
 {
     std::string damage_type;
     Import(js, damage_type, "ResistanceType");
@@ -428,7 +462,7 @@ void from_json(const nlohmann::json & js, OngoingResistance & effect)
 
 Effect * LoadEffectOngoingResistance(const nlohmann::json & js)
 {
-    auto * effect = new OngoingResistance();
+    auto * effect = new ResistanceEffect();
     js.get_to(*effect);
     return effect;
 }
@@ -468,6 +502,37 @@ Effect * LoadEffectSaveEffect(const nlohmann::json & js)
     return effect;
 }
 
+Effect * LoadEffectRepeatingEffect(const nlohmann::json & js)
+{
+    auto * effect = new RepeatingEffect();
+    js.get_to(*effect);
+    return effect;
+}
+
+void from_json(const nlohmann::json & js, RepeatingEffect & effect)
+{
+    Import(js, effect.Duration, "Duration");
+    Import(js, effect.DC, "DC");
+    Import(js, effect.SavingThrow, "SavingThrow");
+    Import(js, effect.Timing, "Timing");
+    Import(js, effect.RepeatingEffects, "RepeatingEffects");
+    Import(js, effect.DurationEffects, "DurationEffects");
+}
+
+void from_json(const nlohmann::json & js, ConditionEffect & effect)
+{
+    std::string inflicted_condition;
+    Import(js, inflicted_condition, "InflictedCondition");
+    effect.InflictedCondition = ToCondition(inflicted_condition);
+}
+
+Effect * LoadEffectConditionEffect(const nlohmann::json & js)
+{
+    auto * effect = new ConditionEffect();
+    js.get_to(*effect);
+    return effect;
+}
+
 Effect * LoadEffect(const nlohmann::json & js)
 {
     std::string type;
@@ -481,6 +546,8 @@ Effect * LoadEffect(const nlohmann::json & js)
     else if (type == "Resistance") effect = LoadEffectOngoingResistance(js);
     else if (type == "UsableAction") effect = LoadEffectUsableAction(js);
     else if (type == "SaveEffect") effect = LoadEffectSaveEffect(js);
+    else if (type == "ConditionEffect") effect = LoadEffectConditionEffect(js);
+    else if (type == "RepeatingEffect") effect = LoadEffectRepeatingEffect(js);
 
     if (effect == nullptr)
     {

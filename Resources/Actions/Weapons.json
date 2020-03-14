@@ -83,6 +83,34 @@
     "HitEffects": [],
     "MissEffects": []
   },
+  "+2Greatsword": {
+    "Type": "WeaponAttack",
+    "Name": "+2 Greatsword",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 2,
+    "DamageDiceSize": 6,
+    "DamageBonus": 2,
+    "HitBonus": 2,
+    "DamageType": "MagicalSlashing",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
+  },
+  "+3Greatsword": {
+    "Type": "WeaponAttack",
+    "Name": "+3 Greatsword",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 2,
+    "DamageDiceSize": 6,
+    "DamageBonus": 3,
+    "HitBonus": 3,
+    "DamageType": "MagicalSlashing",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
+  },
   "Greataxe": {
     "Type": "WeaponAttack",
     "Name": "Greataxe",

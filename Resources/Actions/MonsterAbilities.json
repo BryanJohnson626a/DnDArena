@@ -67,6 +67,177 @@
     ],
     "MissEffects": []
   },
+  "SpinedDevilBite": {
+    "Type": "WeaponAttack",
+    "Name": "Bite",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 2,
+    "DamageDiceSize": 4,
+    "DamageBonus": 0,
+    "HitBonus": 0,
+    "DamageType": "Slashing",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
+  },
+  "SpinedDevilFork": {
+    "Type": "WeaponAttack",
+    "Name": "Fork",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 6,
+    "DamageBonus": 0,
+    "HitBonus": 0,
+    "DamageType": "Piercing",
+    "Duration": 0,
+    "HitEffects": [],
+    "MissEffects": []
+  },
+  "SpinedDevilTailSpine": {
+    "Type": "WeaponAttack",
+    "Name": "Tail Spine",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 4,
+    "DamageBonus": 0,
+    "HitBonus": 0,
+    "DamageType": "Piercing",
+    "Duration": 0,
+    "HitEffects": [
+      {
+        "Type": "Damage",
+        "DamageDieNum": 1,
+        "DamageDieSize": 6,
+        "DamageBonus": 0,
+        "DamageMultiplier": 1,
+        "DamageType": "Fire"
+      }
+    ],
+    "MissEffects": []
+  },
+  "SpinedDevilMultiattackA": {
+    "Type": "MultiAction",
+    "Name": "Multiattack",
+    "Target": "Enemy",
+    "Actions": [
+      {
+        "Name": "SpinedDevilTailSpine"
+      },
+      {
+        "Name": "SpinedDevilTailSpine"
+      }
+    ]
+  },
+  "SpinedDevilMultiattackB": {
+    "Type": "MultiAction",
+    "Name": "Multiattack",
+    "Target": "Enemy",
+    "Actions": [
+      {
+        "Name": "SpinedDevilBite"
+      },
+      {
+        "Name": "SpinedDevilFork"
+      }
+    ]
+  },
+  "BeardedDevilMultiattack": {
+    "Type": "MultiAction",
+    "Name": "Multiattack",
+    "Target": "Enemy",
+    "Actions": [
+      {
+        "Name": "BeardedDevilBeard"
+      },
+      {
+        "Name": "BeardedDevilGlaive"
+      }
+    ]
+  },
+  "BeardedDevilBeard": {
+    "Type": "WeaponAttack",
+    "Name": "Beard",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 1,
+    "DamageBonus": 0,
+    "HitBonus": 1,
+    "DamageType": "Piercing",
+    "Duration": 0,
+    "HitEffects": [
+      {
+        "Type": "SaveEffect",
+        "DC": 12,
+        "SavingThrow": "Constitution",
+        "HitEffects": [
+          {
+            "Type": "RepeatingEffect",
+            "Duration": 10,
+            "DC": 12,
+            "SavingThrow": "Constitution",
+            "Timing": "StartOfTurn",
+            "DurationEffects": [
+              {
+                "Type": "ConditionEffect",
+                "InflictedCondition": "Poisoned"
+              },
+              {
+                "Type": "ConditionEffect",
+                "InflictedCondition": "NoHealing"
+              }
+            ],
+            "RepeatingEffects": []
+          }
+        ]
+      }
+    ],
+    "MissEffects": []
+  },
+  "BeardedDevilGlaive": {
+    "Type": "WeaponAttack",
+    "Name": "Glaive",
+    "Target": "Enemy",
+    "Area": 1,
+    "DamageDiceNum": 1,
+    "DamageDiceSize": 10,
+    "DamageBonus": 0,
+    "HitBonus": 0,
+    "DamageType": "Slashing",
+    "Duration": 0,
+    "HitEffects": [
+      {
+        "Type": "SaveEffect",
+        "DC": 12,
+        "SavingThrow": "Constitution",
+        "HitEffects": [
+          {
+            "Type": "RepeatingEffect",
+            "Duration": -1,
+            "DC": 0,
+            "SavingThrow": "None",
+            "Timing": "StartOfTurn",
+            "DurationEffects": [],
+            "RepeatingEffects": [
+              {
+                "Type": "Damage",
+                "DamageDieNum": 1,
+                "DamageDieSize": 10,
+                "DamageBonus": 0,
+                "DamageMultiplier": 1,
+                "DamageType": "Untyped"
+              }
+            ]
+          }
+        ],
+        "MissEffects": []
+      }
+    ],
+    "MissEffects": []
+  },
   "Stub": {
     "Type": "WeaponAttack",
     "Name": "",

@@ -41,6 +41,11 @@ Output & Output::Out()
     return OutputSingleton;
 }
 
+void Output::SetDelay(int milliseconds)
+{
+    MessageDelay = std::chrono::milliseconds(milliseconds);
+}
+
 std::ostream & operator<<(std::ostream & out, const Actor & actor)
 {
     out << actor.Name;

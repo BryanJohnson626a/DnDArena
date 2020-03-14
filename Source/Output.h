@@ -5,6 +5,7 @@
 #pragma once
 
 #include <iostream>
+#include <thread>
 #include "Types.h"
 
 // Output levels. Each entry includes all levels above it.
@@ -41,24 +42,30 @@ public:
     [[nodiscard]] bool CheckLevel(enum MessageLevel level) const;
     [[nodiscard]] std::ostream & GetStream();
     bool SetLevel(MessageLevel new_level);
+    void SetDelay(int milliseconds);
 
+    std::chrono::milliseconds MessageDelay{0};
     MessageLevel Level;
     std::ostream * MessageStream;
     int errors{0};
     int warnings{0};
 };
 
-
 #define OUT_ERROR {++Output::Out().errors; if(Output::Out().CheckLevel(Errors)) Output::Out().GetStream() << "\x1B[31mError: " << __FILE__ << " : " << __LINE__ << " : "
 #define ERROR_END "\033[0m\t\t" << std::endl;}
+
 #define OUT_WARNING {++Output::Out().warnings; if(Output::Out().CheckLevel(Warnings)) Output::Out().GetStream() << "\x1B[33mWarning: " << __FILE__ << " : " << __LINE__ << " : "
 #define WARNING_END "\033[0m\t\t" << std::endl;}
+
 #define OUT_INFO {if(Output::Out().CheckLevel(Info)) Output::Out().GetStream() << "\x1B[32mInfo: "
 #define INFO_END "\033[0m\t\t" << std::endl;}
-#define OUT_RESULTS if(Output::Out().CheckLevel(Results)) Output::Out().GetStream()
-#define OUT_TRIALS if(Output::Out().CheckLevel(TrialResults)) Output::Out().GetStream()
-#define OUT_ALL if(Output::Out().CheckLevel(AllActions)) Output::Out().GetStream()
-#define OUT_HP if (Output::Out().CheckLevel(AllHPChanges)) Output::Out().GetStream()
+
+#define OUT_RESULTS {if(Output::Out().CheckLevel(Results)) Output::Out().GetStream()
+#define OUT_TRIALS {if(Output::Out().CheckLevel(TrialResults)) Output::Out().GetStream()
+#define OUT_ALL {if(Output::Out().CheckLevel(AllActions)) Output::Out().GetStream()
+#define OUT_HP {if (Output::Out().CheckLevel(AllHPChanges)) Output::Out().GetStream()
+#define ALL_CONT ;}
+#define ALL_ENDL << std::endl; std::this_thread::sleep_for(Output::Out().MessageDelay);}
 
 std::ostream & operator<<(std::ostream & out, const Arena & arena);
 std::ostream & operator<<(std::ostream & out, const Group & group);

@@ -58,23 +58,23 @@ Die * Die::Get(int size)
 int Die::Roll()
 {
     int result = roller(generator);
-    if (dice_output) OUT_ALL << "[" << result << "]";
+    if (dice_output) OUT_ALL << "[" << result << "]" ALL_CONT
     return result;
 }
 
 int Die::Roll(int times)
 {
     int result = 0;
-    if (dice_output) OUT_ALL << "[";
+    if (dice_output) OUT_ALL << "[" ALL_CONT
     for (int i = 0; i < times; ++i)
     {
         int roll = roller(generator);
         if (i > 0)
-            if (dice_output) OUT_ALL << "+";
-        if (dice_output) OUT_ALL << roll;
+            if (dice_output) OUT_ALL << "+" ALL_CONT
+        if (dice_output) OUT_ALL << roll ALL_CONT
         result += roll;
     }
-    if (dice_output) OUT_ALL << "]";
+    if (dice_output) OUT_ALL << "]" ALL_CONT
     return result;
 }
 
@@ -85,7 +85,7 @@ int Die::Roll(int times, int keep, bool low)
         OUT_ERROR << "Invalid die roll, too many dice kept." << ERROR_END;
         return 0;
     }
-    if (dice_output) OUT_ALL << "[";
+    if (dice_output) OUT_ALL << "[" ALL_CONT
 
     // Roll all dice.
     std::vector<int> rolls;
@@ -114,20 +114,20 @@ int Die::Roll(int times, int keep, bool low)
     {
         result += kept[i];
         if (i > 0)
-            if (dice_output) OUT_ALL << "+";
-        if (dice_output) OUT_ALL << kept[i];
+            if (dice_output) OUT_ALL << "+" ALL_CONT
+        if (dice_output) OUT_ALL << kept[i] ALL_CONT
     }
 
-    if (dice_output) OUT_ALL << "|";
+    if (dice_output) OUT_ALL << "|" ALL_CONT
 
     for (int i = 0; i < rolls.size(); ++i)
     {
         if (i > 0)
-            if (dice_output) OUT_ALL << " ";
-        if (dice_output) OUT_ALL << rolls[i];
+            if (dice_output) OUT_ALL << " " ALL_CONT
+        if (dice_output) OUT_ALL << rolls[i] ALL_CONT
     }
 
-    if (dice_output) OUT_ALL << "]";
+    if (dice_output) OUT_ALL << "]" ALL_CONT
     return result;
 }
 
@@ -142,10 +142,10 @@ int Die::RollMod(int bonus, int times, int keep, bool low)
         roll = Roll(times, keep, low);
 
     if (dice_output && bonus > 0)
-        OUT_ALL << "+" << bonus;
+        OUT_ALL << "+" << bonus ALL_CONT
     if (dice_output && bonus < 0)
-        OUT_ALL << bonus;
+        OUT_ALL << bonus ALL_CONT
     if (dice_output && (times > 1 || bonus != 0))
-    OUT_ALL << "=" << roll + bonus;
+    OUT_ALL << "=" << roll + bonus ALL_CONT
     return roll + bonus;
 }

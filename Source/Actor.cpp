@@ -77,15 +77,15 @@ void Actor::Initialize()
 
 void Actor::RollInitiative()
 {
-    OUT_ALL << Name << " rolls initiative: ";
+    OUT_ALL << Name << " rolls initiative: " ALL_CONT
     Initiative = D20.RollMod(Stats->DEX + Stats->InitiativeBonus);
-    OUT_ALL << std::endl;
+    OUT_ALL ALL_ENDL
 }
 
 void Actor::RollHealth()
 {
 
-    OUT_ALL << Name << " rolls health: ";
+    OUT_ALL << Name << " rolls health: " ALL_CONT
     if (Stats->Heroic)
     {
         HPMax = Stats->HDSize + Stats->CON;
@@ -98,7 +98,7 @@ void Actor::RollHealth()
         HPMax += Stats->HD->RollMod(Stats->CON * Stats->HDNum, Stats->HDNum);
         HP = HPMax;
     }
-    OUT_ALL << std::endl;
+    OUT_ALL ALL_ENDL
 }
 
 const Actor::Statistics & Actor::Info()
@@ -170,7 +170,7 @@ bool Actor::TakeAction()
                 return true;
             }
         }
-    OUT_ALL << "    " << Name << " can't do anything useful." << std::endl;
+    OUT_ALL << "    " << Name << " can't do anything useful." ALL_ENDL
     return false;
 }
 
@@ -231,7 +231,7 @@ int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
     // Can't damage something that's already dead.
     if (State == Dead)
     {
-        OUT_ALL << "            " << Name << " is already dead." << std::endl;
+        OUT_ALL << "            " << Name << " is already dead." ALL_ENDL
         return 0;
     }
 
@@ -250,9 +250,9 @@ int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
             HP = 0;
             State = DeathState::Dead;
             if (Stats->Heroic)
-            { OUT_ALL << "            " << Name << " dies instantly!" << std::endl; }
+            OUT_ALL << "            " << Name << " dies instantly!" ALL_ENDL
             else
-            { OUT_ALL << "            " << Name << " dies." << std::endl; }
+            OUT_ALL << "            " << Name << " dies." ALL_ENDL
 
             ++InfoStats.Deaths;
             ++damager.InfoStats.Kills;
@@ -266,58 +266,57 @@ int Actor::TakeDamage(int damage, DamageType damage_type, Actor & damager)
 
             HP = 0;
             State = DeathState::Dying;
-            OUT_ALL << "            " << Name << " has fallen!" << std::endl;
+            OUT_ALL << "            " << Name << " has fallen!" ALL_ENDL
 
-            ++InfoStats.KOed;
-            ++damager.InfoStats.KOs;
+                ++InfoStats.KOed;
+                ++damager.InfoStats.KOs;
+            }
         }
+        else
+            OUT_HP << "            " << Name << " has " << HP << "/" << HPMax << " HP remaning." ALL_ENDL
+
+
+        damager.InfoStats.DamageDone += damage;
+        InfoStats.DamageTaken += damage;
+
+        return damage;
     }
-    else
+
+    int Actor::CurrentHP() const
     {
-        OUT_HP << "            " << Name << " has " << HP << "/" << HPMax << " HP remaning." << std::endl;
+        return HP;
     }
 
-    damager.InfoStats.DamageDone += damage;
-    InfoStats.DamageTaken += damage;
-
-    return damage;
-}
-
-int Actor::CurrentHP() const
-{
-    return HP;
-}
-
-void Actor::DeathSave()
-{
-    if (SuccessfulDeathSaves < 3 && FailedDeathSaves < 3)
+    void Actor::DeathSave()
     {
-        OUT_ALL << "    " << Name << " makes a death saving throw: ";
-        int roll = D20.Roll();
-        if (roll == 20)
+        if (SuccessfulDeathSaves < 3 && FailedDeathSaves < 3)
         {
-            // Miracluous Recovery.
-            HP = 1;
-            SuccessfulDeathSaves = 0;
-            FailedDeathSaves = 0;
-            State = DeathState::Conscious;
-            OUT_ALL << " Critical Success!" << std::endl
-                    << "        " << Name << " recovers!" << std::endl;
+            OUT_ALL << "    " << Name << " makes a death saving throw: " ALL_CONT
+            int roll = D20.Roll();
+            if (roll == 20)
+            {
+                // Miracluous Recovery.
+                HP = 1;
+                SuccessfulDeathSaves = 0;
+                FailedDeathSaves = 0;
+                State = DeathState::Conscious;
+                OUT_ALL << " Critical Success!" ALL_ENDL
+                OUT_ALL << "        " << Name << " recovers!" ALL_ENDL
             return;
         }
         else if (roll >= 10)
         {
-            OUT_ALL << " Success." << std::endl;
+            OUT_ALL << " Success." ALL_ENDL
             ++SuccessfulDeathSaves;
         }
         else if (roll > 1)
         {
-            OUT_ALL << " Fail." << std::endl;
+            OUT_ALL << " Fail." ALL_ENDL
             ++FailedDeathSaves;
         }
         else
         {
-            OUT_ALL << " Critical fail!" << std::endl;
+            OUT_ALL << " Critical fail!" ALL_ENDL
             FailedDeathSaves += 2;
         }
     }
@@ -331,13 +330,13 @@ void Actor::DeathCheck()
         // Dead
         State = DeathState::Dead;
         InfoStats.Deaths++;
-        OUT_ALL << "            " << Name << " died!" << std::endl;
+        OUT_ALL << "            " << Name << " died!" ALL_ENDL
     }
     else if (State == DeathState::Dying && SuccessfulDeathSaves >= 3)
     {
         // Stable
         State = DeathState::Stable;
-        OUT_ALL << "            " << Name << " has stabilized." << std::endl;
+        OUT_ALL << "            " << Name << " has stabilized." ALL_ENDL
     }
 }
 
@@ -477,20 +476,20 @@ bool Actor::CanConcentrate() const
 bool Actor::MakeSave(Stat stat, int dc, Actor & instigator, PropertyField properties)
 {
 
-    OUT_ALL << "        " << Name << " rolled ";
+    OUT_ALL << "        " << Name << " rolled " ALL_CONT
     int roll;
     if (properties.test(IsSpell) && Stats->MagicResistance)
         roll = D20.RollMod(GetSave(stat), 2, 1);
     else
         roll = D20.RollMod(GetSave(stat));
-    OUT_ALL << " against DC " << dc;
+    OUT_ALL << " against DC " << dc ALL_CONT
 
     if (roll < dc)
     {
         InfoStats.SavesFailed++;
         instigator.InfoStats.ForcedSavesFailed++;
 
-        OUT_ALL << " Failed." << std::endl;
+        OUT_ALL << " Failed." ALL_ENDL
         return false;
     }
     else
@@ -498,7 +497,7 @@ bool Actor::MakeSave(Stat stat, int dc, Actor & instigator, PropertyField proper
         InfoStats.SavesMade++;
         instigator.InfoStats.ForcedSavesMade++;
 
-        OUT_ALL << " Saved!" << std::endl;
+        OUT_ALL << " Saved!" ALL_ENDL;
         return true;
     }
 }

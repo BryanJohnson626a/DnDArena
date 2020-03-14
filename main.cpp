@@ -7,42 +7,50 @@
 
 #include "Source/Arena.h"
 #include "Source/Output.h"
+#include "Source/Dice.h"
 
 int main()
 {
-    {
-        Output::Out().SetLevel(AllOutput);
-        Arena BG;
-        BG.AddTeam("Team A");
-        BG.AddCombatant("Player Alice", "BattleMasterFighter5", 0);
-        BG.AddCombatant("Player Bob", "Barbarian5", 0);
-        BG.AddCombatant("Player Carol", "Cleric5", 0);
+    Output::Out().SetLevel(AllOutput);
+    Output::Out().SetDelay(200);
 
-        BG.AddTeam("Team B");
-        std::string enemy_type = "Imp";
-        for (int i = 0; i < 20; ++i)
+    Arena BG;
+    BG.AddTeam("Team A");
+    BG.AddCombatant("Player Alice", "BattleMasterFighter5", 0);
+    BG.AddCombatant("Player Bob", "Barbarian5", 0);
+    BG.AddCombatant("Player Carol", "Cleric5", 0);
+
+    BG.AddTeam("Team B");
+
+    std::vector<std::pair<int, std::string>> enemies;
+    enemies.emplace_back(std::make_pair(4, "Lemure"));
+    enemies.emplace_back(std::make_pair(3, "BeardedDevil"));
+    enemies.emplace_back(std::make_pair(2, "SpinedDevil"));
+    enemies.emplace_back(std::make_pair(1, "Imp"));
+    for (auto & p : enemies)
+    {
+        for (int i = 0; i < p.first; ++i)
         {
             std::stringstream name;
-            name << enemy_type << " " << i + 1;
-            BG.AddCombatant(name.str(), enemy_type, 1);
+            name << p.second << " " << i + 1;
+            BG.AddCombatant(name.str(), p.second, 1);
         }
-
-        BG.Initialize();
-        BG.DoBattles(1);
-
-        BG.Report(KOsKOedRatio, "Player");
-        BG.Report(KDRatio, "Player");
-        BG.Report(KOs, "Player");
-        BG.Report(KOed, "Player");
-        BG.Report(Kills, "Player");
-        BG.Report(Deaths, "Player");
-        BG.Report(DamageDone, "Alice");
-        BG.Report(DamageDone, "Bob");
-        BG.Report(DamageDone, "Carol");
-        //BG.Report(DamageDone, enemy_type);
-
-        Output::Out().SetLevel(NoOutput);
-
     }
+    BG.Initialize();
+    BG.DoBattles(1);
+
+    BG.Report(KOsKOedRatio, "Player");
+    BG.Report(KDRatio, "Player");
+    BG.Report(KOs, "Player");
+    BG.Report(KOed, "Player");
+    BG.Report(Kills, "Player");
+    BG.Report(Deaths, "Player");
+    BG.Report(DamageDone, "Alice");
+    BG.Report(DamageDone, "Bob");
+    BG.Report(DamageDone, "Carol");
+    //BG.Report(DamageDone, enemy_type);
+
+    // No output needed for destructors.
+    Output::Out().SetLevel(NoOutput);
     return 0;
 }

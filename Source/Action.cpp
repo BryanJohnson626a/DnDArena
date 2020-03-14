@@ -85,18 +85,18 @@ bool WeaponAttack::DoAction(Actor & user, Stat KeyStat) const
         if (target.HasImmunity(DamageType))
             continue;
 
-        OUT_ALL << "    " << user.Name << " attacks " << target << " with " << Name << ". ";
+        OUT_ALL << "    " << user.Name << " attacks " << target << " with " << Name << ". " ALL_CONT
 
         int stat_mod = user.GetStatMod(KeyStat);
         int attack_mod = stat_mod + user.Stats->Proficiency + user.Stats->AttackBonus + HitBonus;
         int roll = 0;
 
-        OUT_ALL << "Rolled ";
+        OUT_ALL << "Rolled " ALL_CONT
         if (!target.Conscious()) // Advantage if target is not conscious.
             roll = D20.Roll(2, 1);
         else
             roll = D20.Roll();
-        OUT_ALL << "+" << attack_mod << "=" << roll + attack_mod << " vs " << target.Stats->AC << " AC ";
+        OUT_ALL << "+" << attack_mod << "=" << roll + attack_mod << " vs " << target.Stats->AC << " AC " ALL_CONT
 
         if ((roll == 20 || roll + attack_mod >= target.Stats->AC) && roll != 1)
         {
@@ -124,7 +124,7 @@ bool WeaponAttack::DoAction(Actor & user, Stat KeyStat) const
                 crit = true;
                 target.InfoStats.CritsReceived++;
                 user.InfoStats.CritsLanded++;
-                OUT_ALL << "critical hit dealing ";
+                OUT_ALL << "critical hit dealing " ALL_CONT
                 dice_rolled_mult *= 2;
             }
 
@@ -132,8 +132,8 @@ bool WeaponAttack::DoAction(Actor & user, Stat KeyStat) const
             int damage = DamageDie->RollMod(damage_bonus, DamageDiceNum * dice_rolled_mult);
 
             if (target.HasResistance(DamageType))
-                OUT_ALL << " resisted to " << damage / 2;
-            OUT_ALL << " " << DamageType << " damage." << std::endl;
+                OUT_ALL << " resisted to " << damage / 2 ALL_CONT
+            OUT_ALL << " " << DamageType << " damage." ALL_ENDL
 
             if (damage < 0)
             OUT_ERROR << "Negative damage dealt." << ERROR_END;
@@ -154,7 +154,7 @@ bool WeaponAttack::DoAction(Actor & user, Stat KeyStat) const
             // miss
             target.InfoStats.AttacksAvoided++;
             user.InfoStats.AttacksMissed++;
-            OUT_ALL << "Miss! " << std::endl;
+            OUT_ALL << "Miss! " ALL_ENDL
 
             for (auto effect : MissEffects)
                 effect->DoEffect(user, &target, false, KeyStat);
@@ -184,10 +184,10 @@ bool SpecialAction::DoAction(Actor & user, Stat KeyStat) const
 
     for (auto target : targets)
     {
-        OUT_ALL << "    " << user.Name << " uses " << Name;
+        OUT_ALL << "    " << user.Name << " uses " << Name ALL_CONT
         if (targets.size() > 1 || target != &user)
-            OUT_ALL << " on " << target->Name;
-        OUT_ALL << "." << std::endl;
+            OUT_ALL << " on " << target->Name ALL_CONT
+        OUT_ALL << "." ALL_ENDL
 
         for (Effect * e : HitEffects)
             e->DoEffect(user, target, false, KeyStat);
@@ -226,16 +226,16 @@ bool Spell::DoAction(Actor & user, Stat KeyStat) const
     int affected = Area;
     for (Actor * target : targets)
     {
-        OUT_ALL << "    " << user.Name << " casts " << Name;
+        OUT_ALL << "    " << user.Name << " casts " << Name ALL_CONT
         if (targets.size() > 1 || target != &user)
-            OUT_ALL << " on " << target->Name;
-        OUT_ALL << "." << std::endl;
+            OUT_ALL << " on " << target->Name ALL_CONT
+        OUT_ALL << "." ALL_ENDL
 
         if (SavingThrow != None)
         {
             if (!target->Conscious() && (SavingThrow == Strength || SavingThrow == Dexterity))
             {
-                OUT_ALL << "        " << target->Name << " can't move." << std::endl;
+                OUT_ALL << "        " << target->Name << " can't move." ALL_ENDL
                 for (Effect * e : HitEffects)
                     e->DoEffect(user, target, false, KeyStat);
 
@@ -265,27 +265,27 @@ bool Spell::DoAction(Actor & user, Stat KeyStat) const
         }
         else if (SpellAttack)
         {
-            OUT_ALL << "        " << user.Name << " rolled ";
+            OUT_ALL << "        " << user.Name << " rolled " ALL_CONT
             int roll = D20.RollMod(user.GetStatMod(KeyStat) + user.Stats->Proficiency);
-            OUT_ALL << " vs " << target->Stats->AC << " AC";
+            OUT_ALL << " vs " << target->Stats->AC << " AC" ALL_CONT
 
             if (roll == 20 && roll >= target->Stats->AC)
             {
-                OUT_ALL << " Crit!" << std::endl;
+                OUT_ALL << " Crit!" ALL_ENDL
                 for (Effect * e : HitEffects)
                     e->DoEffect(user, target, true, KeyStat);
                 hit_targets.emplace_back(target);
             }
             if (roll >= target->Stats->AC)
             {
-                OUT_ALL << " Hit." << std::endl;
+                OUT_ALL << " Hit." ALL_ENDL
                 for (Effect * e : HitEffects)
                     e->DoEffect(user, target, false, KeyStat);
                 hit_targets.emplace_back(target);
             }
             else
             {
-                OUT_ALL << " Miss!" << std::endl;
+                OUT_ALL << " Miss!" ALL_ENDL
                 for (Effect * e : MissEffects)
                     e->DoEffect(user, target, false, KeyStat);
                 missed_targets.emplace_back(target);
